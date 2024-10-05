@@ -4,8 +4,6 @@ mod app;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-  run_app();
-
   tauri::Builder::default()
     .setup(|app| {
       if cfg!(debug_assertions) {
