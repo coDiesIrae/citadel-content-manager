@@ -1,18 +1,12 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
-import "./globals.css";
-import { getMessages } from "next-intl/server";
 import { NextIntlClientProvider } from "next-intl";
+import { getMessages } from "next-intl/server";
+import { Inter } from "next/font/google";
+import "./globals.css";
 
-const geistSans = localFont({
-  src: "./fonts/GeistVF.woff",
-  variable: "--font-geist-sans",
-  weight: "100 900",
-});
-const geistMono = localFont({
-  src: "./fonts/GeistMonoVF.woff",
-  variable: "--font-geist-mono",
-  weight: "100 900",
+const inter = Inter({
+  weight: ["400", "500", "600"],
+  subsets: ["latin", "latin-ext"],
 });
 
 export const metadata: Metadata = {
@@ -29,9 +23,7 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${inter.className} font-mono antialiased`}>
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
