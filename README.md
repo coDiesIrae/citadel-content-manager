@@ -4,8 +4,9 @@
 
 ## Installation
 
-Download the latest version from the [releases page]()
+Download the latest version from the [releases page](https://github.com/coDiesIrae/citadel-content-manager/releases)
 
 ## License
 
 Contents of this repository are available under [MIT license](LICENSE)
+
