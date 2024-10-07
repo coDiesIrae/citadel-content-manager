@@ -1,7 +1,7 @@
-import useSWR from "swr";
+import useSWR, { mutate } from "swr";
 import { commands } from "./commands";
 import invoke from "./invoke";
-import useSWRMutation from "swr/mutation";
+import useSWRMutation, { SWRMutationConfiguration } from "swr/mutation";
 
 export function useInvoke<T extends keyof commands>(
   command: T,
@@ -32,4 +32,17 @@ export function useInvokeMutate<T extends keyof commands>(command: T) {
   >([command], async (_, { arg: input }) => {
     return await invoke(command, input);
   });
+}
+
+export function mutateInvoke<T extends keyof commands>(
+  command: T,
+  input?: commands[T]["input"]
+) {
+  if (input) {
+    return mutate([command, input]);
+  } else {
+    return mutate((key) => {
+      return Array.isArray(key) && key[0] === command;
+    });
+  }
 }
