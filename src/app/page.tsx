@@ -21,11 +21,7 @@ export default function Home() {
       return;
     }
 
-    if (
-      installPath !== undefined &&
-      searchPathsState !== undefined &&
-      searchPathsState !== "Vanilla"
-    ) {
+    if (installPath && searchPathsState && searchPathsState !== "Vanilla") {
       router.push("/addons");
     } else {
       router.push("/onboarding");
