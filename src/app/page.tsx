@@ -28,6 +28,10 @@ export default function Home() {
     }
   }, [installPath, searchPathsState, router, isLoading]);
 
-  return <div>Loading...</div>;
+  return (
+    <div className="h-screen w-screen flex flex-col items-center justify-end">
+      <span>Loading...</span>
+    </div>
+  );
 }
 
