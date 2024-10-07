@@ -30,7 +30,7 @@ export default function Home() {
           onClick={async () => {
             const r = await open({
               directory: false,
-              multiple: false,
+              multiple: true,
               filters: [
                 {
                   name: "VPK files",
@@ -40,13 +40,15 @@ export default function Home() {
             });
 
             if (r) {
-              const { success } = await installAddon({
-                filePath: r,
-              });
+              await Promise.all(
+                r.map((r) =>
+                  installAddon({
+                    filePath: r,
+                  })
+                )
+              );
 
-              if (success) {
-                mutateInstalledAddons();
-              }
+              mutateInstalledAddons();
             }
           }}
         >
