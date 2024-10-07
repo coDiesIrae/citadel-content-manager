@@ -317,6 +317,8 @@ pub fn set_install_path(
 ) -> Result<(), String> {
   let mut state = state.install_path.lock().unwrap();
 
+  let old_install_path = state.clone();
+
   *state = Some(PathBuf::from(&install_path));
 
   let config_store = app_handle.store_builder(".config").build();
@@ -324,6 +326,30 @@ pub fn set_install_path(
   config_store.set("install_path", json!(install_path));
 
   config_store.save().map_err(|e| e.to_string())?;
+
+  if let Some(old_install_path) = old_install_path {
+    if let Ok(entries) = std::fs::read_dir(&old_install_path) {
+      for entry in entries.flatten() {
+        if let Ok(file_type) = entry.file_type() {
+          if file_type.is_file() {
+            let extension = entry
+              .path()
+              .extension()
+              .map(|ext| ext.to_string_lossy().to_string());
+
+            if let Some("vpk") = extension.as_deref() {
+              let file_name = entry.file_name().into_string().unwrap();
+
+              let destination = state.as_ref().unwrap().join(&file_name);
+
+              let _ = std::fs::copy(entry.path(), &destination);
+              let _ = std::fs::remove_file(entry.path());
+            }
+          }
+        }
+      }
+    }
+  }
 
   Ok(())
 }
