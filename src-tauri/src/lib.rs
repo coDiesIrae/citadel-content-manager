@@ -47,7 +47,15 @@ pub fn run() {
 
       let config_store = app.handle().store_builder(".config").build();
 
-      if let Some(config_install_path) = config_store.get("install_path").map(|s| s.to_string()) {
+      if let Some(config_install_path) =
+        config_store
+          .get("install_path")
+          .and_then(|s| -> Option<String> {
+            let str_val = s.as_str()?;
+
+            Some(str_val.to_string())
+          })
+      {
         let state = app.state::<AppState>();
 
         let mut install_path = state.install_path.lock().unwrap();

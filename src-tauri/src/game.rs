@@ -1,4 +1,5 @@
 use serde::{ser, Deserialize, Serialize};
+use serde_json::json;
 use std::path::PathBuf;
 use std::{io, path::Path};
 use steamlocate::SteamDir;
@@ -314,17 +315,17 @@ pub fn set_install_path(
   install_path: String,
   app_handle: AppHandle,
 ) -> Result<(), String> {
-  let state = state.install_path.lock().unwrap();
-
-  let mut state = state;
+  let mut state = state.install_path.lock().unwrap();
 
   *state = Some(PathBuf::from(&install_path));
 
   let config_store = app_handle.store_builder(".config").build();
 
-  config_store.set("install_path", install_path);
+  config_store.set("install_path", json!(install_path));
 
-  config_store.save().map_err(|e| e.to_string())
+  config_store.save().map_err(|e| e.to_string())?;
+
+  Ok(())
 }
 
 #[tauri::command]

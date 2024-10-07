@@ -3,6 +3,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import SWRClientConfig from "@/components/wrappers/swr";
 
 const inter = Inter({
   weight: ["400", "500", "600"],
@@ -23,10 +24,20 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
-      <body className={`${inter.className} font-mono antialiased`}>
-        <NextIntlClientProvider messages={messages}>
-          {children}
-        </NextIntlClientProvider>
+      <body
+        className={`${inter.className} font-mono antialiased bg-surface-600`}
+      >
+        <SWRClientConfig
+          value={{
+            revalidateIfStale: false,
+            revalidateOnFocus: false,
+            revalidateOnReconnect: false,
+          }}
+        >
+          <NextIntlClientProvider messages={messages}>
+            {children}
+          </NextIntlClientProvider>
+        </SWRClientConfig>
       </body>
     </html>
   );

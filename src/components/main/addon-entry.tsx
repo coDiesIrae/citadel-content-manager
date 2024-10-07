@@ -1,6 +1,5 @@
 "use client";
 
-import { Addon, DeployState } from "@/app/page";
 import {
   Sheet,
   SheetContent,
@@ -9,6 +8,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { Input } from "../ui/input";
+import { Addon, DeployState } from "@/app/(app)/addons/page";
 
 export interface AddonEntryProps {
   addon: Addon;
