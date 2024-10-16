@@ -86,20 +86,22 @@ export default function AddonEntry({
               <Button type="submit" className="mt-auto">
                 Save
               </Button>
-              <Button
-                variant="destructive"
-                type="button"
-                onClick={async () => {
-                  await deleteAddon({ addonFileName: fileName });
+              {!mounted && (
+                <Button
+                  variant="destructive"
+                  type="button"
+                  onClick={async () => {
+                    await deleteAddon({ addonFileName: fileName });
 
-                  mutateInvoke("list_installed_addons");
-                  mutateInvoke("list_mounted_addons");
+                    mutateInvoke("list_installed_addons");
+                    mutateInvoke("list_mounted_addons");
 
-                  setEditOpen(false);
-                }}
-              >
-                Delete
-              </Button>
+                    setEditOpen(false);
+                  }}
+                >
+                  Delete
+                </Button>
+              )}
             </form>
           </SheetContent>
         </Sheet>

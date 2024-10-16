@@ -58,7 +58,7 @@ export default function Home() {
       </div>
       <div className="flex flex-col flex-1 overflow-auto scrollbar-none gap-10 px-4 pb-2">
         <div className="flex flex-col gap-4">
-          <span className="font-bold text-lg">Mounted</span>
+          <span className="font-bold text-lg">Installed</span>
           <div className="h-[1px] w-full bg-surface-100/30" />
           <div className="flex flex-col gap-6">
             {mountedAddons?.map((item, index) => (
@@ -68,7 +68,7 @@ export default function Home() {
         </div>
 
         <div className="flex flex-col gap-4">
-          <span className="font-bold text-lg">Installed</span>
+          <span className="font-bold text-lg">Stored</span>
           <div className="h-[1px] w-full bg-surface-100/30" />
           <div className="flex flex-col gap-6">
             {notMountedAddons.map((item, index) => (

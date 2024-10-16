@@ -1,8 +1,16 @@
 "use client";
 
 import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { open } from "@tauri-apps/plugin-dialog";
+import { useState } from "react";
 
 export default function SettingsPage() {
   const { data: installPath, mutate: mutateInstallPath } = useInvoke(
@@ -11,6 +19,9 @@ export default function SettingsPage() {
   );
 
   const { trigger: setInstallPath } = useInvokeMutate("set_install_path");
+
+  const [error, setError] = useState<string>();
+  const [errorOpen, setErrorOpen] = useState(false);
 
   return (
     <div className="flex flex-col justify-start p-4 gap-4">
@@ -21,7 +32,7 @@ export default function SettingsPage() {
       </div>
       <div className="grid grid-cols-2 items-center gap-6">
         <div className="flex flex-col gap-1">
-          <span className="font-bold text-lg">Addon install path</span>
+          <span className="font-bold text-lg">Addon storage path</span>
           <span className="text-primary-200 text-sm">
             The path where all your addons will be stored
           </span>
@@ -39,7 +50,12 @@ export default function SettingsPage() {
               title: "Select addons install path",
             }).then((result) => {
               if (result !== null) {
-                setInstallPath({ installPath: result });
+                setInstallPath({ installPath: result }).then((d) => {
+                  if (d.error) {
+                    setError(d.error);
+                    setErrorOpen(true);
+                  }
+                });
                 mutateInstallPath(undefined, {
                   populateCache: false,
                   revalidate: true,
@@ -53,6 +69,15 @@ export default function SettingsPage() {
           }}
         />
       </div>
+
+      <Dialog open={errorOpen} onOpenChange={setErrorOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Error</DialogTitle>
+            <DialogDescription>{error}</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

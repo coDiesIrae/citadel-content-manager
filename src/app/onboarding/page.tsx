@@ -27,7 +27,7 @@ export default function Home() {
 
       <div className="grid grid-cols-2 items-center gap-6">
         <div className="flex flex-col gap-1">
-          <span className="font-bold text-lg">Addon install path</span>
+          <span className="font-bold text-lg">Addon storage path</span>
           <span className="text-primary-200 text-sm">
             The path where all your addons will be stored
           </span>

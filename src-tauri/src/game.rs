@@ -74,10 +74,10 @@ impl Serialize for AddonError {
       AddonError::CouldNotCreateAddonFolder(e) => {
         serializer.serialize_str(&format!("Could not create addons folder: {}", e))
       }
-      AddonError::NoInstallPath => serializer.serialize_str("Install path not found"),
+      AddonError::NoInstallPath => serializer.serialize_str("Storage path not found"),
       AddonError::NoGamePath => serializer.serialize_str("Game path not found"),
       AddonError::CouldNotReadInstallFolder(e) => {
-        serializer.serialize_str(&format!("Could not read install path: {}", e))
+        serializer.serialize_str(&format!("Could not read storage path: {}", e))
       }
       AddonError::CouldNotReadAddonFolder(e) => {
         serializer.serialize_str(&format!("Could not read addons folder: {}", e))
@@ -86,14 +86,14 @@ impl Serialize for AddonError {
         serializer.serialize_str(&format!("Could not write addons folder: {}", e))
       }
       AddonError::CouldNotWriteInstallFolder(e) => {
-        serializer.serialize_str(&format!("Could not write install folder: {}", e))
+        serializer.serialize_str(&format!("Could not write storage folder: {}", e))
       }
       AddonError::InvalidAddonFile => serializer.serialize_str("Invalid addon file"),
-      AddonError::AddonIsNotInstalled => serializer.serialize_str("Addon is not installed"),
-      AddonError::AddonAlreadyMounted => serializer.serialize_str("Addon is already mounted"),
-      AddonError::AddonIsNotMounted => serializer.serialize_str("Addon is not mounted"),
+      AddonError::AddonIsNotInstalled => serializer.serialize_str("Addon is not stored"),
+      AddonError::AddonAlreadyMounted => serializer.serialize_str("Addon is already installed"),
+      AddonError::AddonIsNotMounted => serializer.serialize_str("Addon is not installed"),
       AddonError::CannotDeleteMountedAddon => {
-        serializer.serialize_str("Cannot delete mounted addon")
+        serializer.serialize_str("Cannot delete installed addon")
       }
     }
   }
@@ -315,15 +315,33 @@ pub fn set_install_path(
   install_path: String,
   app_handle: AppHandle,
 ) -> Result<(), String> {
-  let mut state = state.install_path.lock().unwrap();
+  let mut install_path_state = state.install_path.lock().unwrap();
 
-  let old_install_path = state.clone();
+  let old_install_path = install_path_state.clone();
 
-  *state = Some(PathBuf::from(&install_path));
+  let new_install_path = PathBuf::from(install_path);
+
+  if let Some(old_install_path) = old_install_path.clone() {
+    if old_install_path == new_install_path {
+      return Ok(());
+    }
+  }
+
+  let game_path = state.path.as_ref().ok_or("Game path not found")?;
+
+  if new_install_path.starts_with(game_path) {
+    return Err("Addon storage path cannot be inside the game path.".to_string());
+  }
+
+  if !new_install_path.exists() {
+    return Err("Addon storage path does not exist.".to_string());
+  }
+
+  *install_path_state = Some(new_install_path.clone());
 
   let config_store = app_handle.store_builder(".config").build();
 
-  config_store.set("install_path", json!(install_path));
+  config_store.set("install_path", json!(new_install_path.clone()));
 
   config_store.save().map_err(|e| e.to_string())?;
 
@@ -340,10 +358,9 @@ pub fn set_install_path(
             if let Some("vpk") = extension.as_deref() {
               let file_name = entry.file_name().into_string().unwrap();
 
-              let destination = state.as_ref().unwrap().join(&file_name);
+              let destination = install_path_state.as_ref().unwrap().join(&file_name);
 
               let _ = std::fs::copy(entry.path(), &destination);
-              let _ = std::fs::remove_file(entry.path());
             }
           }
         }
