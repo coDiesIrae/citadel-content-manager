@@ -2,9 +2,10 @@
 
 import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
 import AddonEntry from "@/components/main/addon-entry";
+import FileDropListener from "@/components/main/file-drop-listener";
 import { Button } from "@/components/ui/button";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useMemo } from "react";
+import { useCallback, useMemo } from "react";
 
 export default function Home() {
   const { data: installedAddons, mutate: mutateInstalledAddons } = useInvoke(
@@ -15,6 +16,21 @@ export default function Home() {
 
   const { trigger: installAddon } = useInvokeMutate("install_addon");
 
+  const installAddons = useCallback(
+    async (files: string[]) => {
+      await Promise.all(
+        files.map((file) =>
+          installAddon({
+            filePath: file,
+          })
+        )
+      );
+
+      mutateInstalledAddons();
+    },
+    [installAddon]
+  );
+
   const notMountedAddons = useMemo(() => {
     if (!installedAddons || !mountedAddons) return [];
 
@@ -23,6 +39,7 @@ export default function Home() {
 
   return (
     <div className="flex flex-col justify-start h-full">
+      <FileDropListener onDrop={installAddons} />
       <div className="self-stretch flex flex-row justify-between p-4">
         <span className="font-extrabold text-3xl text-primary-200">Addons</span>
         <Button
@@ -40,15 +57,7 @@ export default function Home() {
             });
 
             if (r) {
-              await Promise.all(
-                r.map((r) =>
-                  installAddon({
-                    filePath: r,
-                  })
-                )
-              );
-
-              mutateInstalledAddons();
+              installAddons(r);
             }
           }}
         >

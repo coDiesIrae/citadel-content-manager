@@ -12,6 +12,7 @@
     "@iconify/tailwind": "^1.1.3",
     "@radix-ui/react-dialog": "^1.1.2",
     "@radix-ui/react-slot": "^1.1.0",
+    "@tauri-apps/api": "^2.1.1",
     "@tauri-apps/plugin-dialog": "~2.0.0-rc",
     "@tauri-apps/plugin-store": "~2.0.0-rc",
     "class-variance-authority": "^0.7.0",
