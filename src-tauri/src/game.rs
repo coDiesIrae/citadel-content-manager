@@ -1,5 +1,6 @@
 use serde::{ser, Deserialize, Serialize};
 use serde_json::json;
+use std::os::windows::fs::FileTypeExt;
 use std::path::PathBuf;
 use std::{io, path::Path};
 use steamlocate::SteamDir;
@@ -9,6 +10,12 @@ use tauri_plugin_store::StoreExt;
 use crate::AppState;
 
 static GAME_ID: u32 = 1422450;
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq)]
+pub enum DeployMethod {
+  Copy,
+  Symlink,
+}
 
 #[derive(Debug)]
 pub enum SearchPathsError {
@@ -423,7 +430,7 @@ pub fn list_mounted_addons(state: State<AppState>) -> Result<Vec<String>, AddonE
       .file_type()
       .map_err(AddonError::CouldNotReadAddonFolder)?;
 
-    if file_type.is_file() {
+    if file_type.is_file() || file_type.is_symlink_file() {
       let extension = entry
         .path()
         .extension()
@@ -509,7 +516,11 @@ pub fn uninstall_addon(state: State<AppState>, addon_file_name: String) -> Resul
 }
 
 #[tauri::command]
-pub fn mount_addon(state: State<AppState>, addon_file_name: String) -> Result<(), AddonError> {
+pub fn mount_addon(
+  state: State<AppState>,
+  addon_file_name: String,
+  app_handle: AppHandle,
+) -> Result<(), AddonError> {
   let addons_game_folder_path =
     create_addons_folder_if_not_exists(state.path.as_ref().ok_or(AddonError::NoGamePath)?)
       .map_err(AddonError::CouldNotCreateAddonFolder)?;
@@ -532,8 +543,20 @@ pub fn mount_addon(state: State<AppState>, addon_file_name: String) -> Result<()
     return Err(AddonError::AddonAlreadyMounted);
   }
 
-  std::fs::copy(&addon_install_path, &addon_game_path)
-    .map_err(AddonError::CouldNotWriteAddonFolder)?;
+  let config_store = app_handle.store_builder(".config").build();
+
+  let deploy_method = config_store
+    .get("deploy_method")
+    .and_then(|s| -> Option<DeployMethod> { DeployMethod::deserialize(s).ok() })
+    .unwrap_or(DeployMethod::Copy);
+
+  if deploy_method == DeployMethod::Symlink && is_symlink_available(state.clone()) {
+    std::os::windows::fs::symlink_file(&addon_install_path, &addon_game_path)
+      .map_err(AddonError::CouldNotWriteAddonFolder)?;
+  } else {
+    std::fs::copy(&addon_install_path, &addon_game_path)
+      .map_err(AddonError::CouldNotWriteAddonFolder)?;
+  }
 
   Ok(())
 }
@@ -564,4 +587,56 @@ pub fn unmount_addon(state: State<AppState>, addon_file_name: String) -> Result<
   std::fs::remove_file(&addon_game_path).map_err(AddonError::CouldNotWriteAddonFolder)?;
 
   Ok(())
+}
+
+#[tauri::command]
+pub fn set_deploy_method(
+  state: State<AppState>,
+  deploy_method: DeployMethod,
+  app_handle: AppHandle,
+) -> Result<(), AddonError> {
+  let mounted_addons = list_mounted_addons(state.clone())?;
+
+  for addon in mounted_addons.iter() {
+    unmount_addon(state.clone(), addon.to_owned())?;
+  }
+
+  let config_store = app_handle.store_builder(".config").build();
+
+  config_store.set("deploy_method", json!(deploy_method));
+
+  _ = config_store.save();
+
+  for addon in mounted_addons.iter() {
+    mount_addon(state.clone(), addon.to_owned(), app_handle.clone())?;
+  }
+
+  Ok(())
+}
+
+#[tauri::command]
+pub fn is_symlink_available(state: State<AppState>) -> bool {
+  let game_path = state.path.as_ref().unwrap();
+  let install_path = state.install_path.lock().unwrap();
+
+  let game_path_drive = game_path.components().next().unwrap().as_os_str();
+  let install_path_drive = install_path
+    .as_ref()
+    .unwrap()
+    .components()
+    .next()
+    .unwrap()
+    .as_os_str();
+
+  game_path_drive == install_path_drive
+}
+
+#[tauri::command]
+pub fn get_deploy_method(app_handle: AppHandle) -> DeployMethod {
+  let config_store = app_handle.store_builder(".config").build();
+
+  config_store
+    .get("deploy_method")
+    .and_then(|s| -> Option<DeployMethod> { DeployMethod::deserialize(s).ok() })
+    .unwrap_or(DeployMethod::Copy)
 }

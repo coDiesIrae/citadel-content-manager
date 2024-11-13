@@ -35,6 +35,9 @@ pub fn run() {
       game::uninstall_addon,
       game::mount_addon,
       game::unmount_addon,
+      game::set_deploy_method,
+      game::is_symlink_available,
+      game::get_deploy_method
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {

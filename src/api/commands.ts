@@ -1,4 +1,4 @@
-import { SearchPathsState } from "./types";
+import { DeployMethod, SearchPathsState } from "./types";
 
 export type commands = {
   get_game_path: {
@@ -67,6 +67,22 @@ export type commands = {
   unmount_addon: {
     input: {
       addonFileName: string;
+    };
+    output: undefined;
+    error: string;
+  };
+  is_symlink_available: {
+    input: undefined;
+    output: boolean;
+    error: undefined;
+  };
+  get_deploy_method: {
+    input: undefined;
+    output: DeployMethod;
+  };
+  set_deploy_method: {
+    input: {
+      deployMethod: DeployMethod;
     };
     output: undefined;
     error: string;
