@@ -25,7 +25,7 @@ export default async function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${inter.className} font-mono antialiased bg-surface-600`}
+        className={`${inter.className} font-mono antialiased bg-surface-600 text-white`}
       >
         <SWRClientConfig
           value={{
