@@ -45,14 +45,8 @@ export default function Home() {
               title: "Select addons install path",
             }).then((result) => {
               if (result !== null) {
-                setInstallPath({ installPath: result });
-                mutateInstallPath(undefined, {
-                  populateCache: false,
-                  revalidate: true,
-                  optimisticData: {
-                    success: true,
-                    result,
-                  },
+                setInstallPath({ installPath: result }).then(() => {
+                  mutateInstallPath();
                 });
               }
             });
@@ -89,7 +83,7 @@ export default function Home() {
       <Link href="/addons" legacyBehavior>
         <Button
           disabled={
-            installPath === undefined ||
+            !installPath ||
             searchPathsState === undefined ||
             searchPathsState === "Vanilla"
           }

@@ -664,16 +664,14 @@ pub fn is_symlink_available(state: State<AppState>) -> bool {
   let game_path = state.path.as_ref().unwrap();
   let install_path = state.install_path.lock().unwrap();
 
-  let game_path_drive = game_path.components().next().unwrap().as_os_str();
-  let install_path_drive = install_path
-    .as_ref()
-    .unwrap()
-    .components()
-    .next()
-    .unwrap()
-    .as_os_str();
+  if let Some(install_path) = install_path.as_ref() {
+    let game_path_drive = game_path.components().next().unwrap().as_os_str();
+    let install_path_drive = install_path.components().next().unwrap().as_os_str();
 
-  game_path_drive == install_path_drive
+    game_path_drive == install_path_drive
+  } else {
+    false
+  }
 }
 
 #[tauri::command]
