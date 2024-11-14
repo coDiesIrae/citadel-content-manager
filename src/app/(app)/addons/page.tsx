@@ -2,13 +2,16 @@
 
 import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
 import AddonEntry from "@/components/main/addon-entry";
+import AddonInstaller from "@/components/main/addon-installer";
 import FileDropListener from "@/components/main/file-drop-listener";
 import { Button } from "@/components/ui/button";
 import { open } from "@tauri-apps/plugin-dialog";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useState } from "react";
 
 export default function Home() {
-  const { data: installedAddons, mutate: mutateInstalledAddons } = useInvoke(
+  const [files, setFiles] = useState<string[]>([]);
+
+  const { data: installedAddons } = useInvoke(
     "list_installed_addons",
     undefined
   );
@@ -18,15 +21,7 @@ export default function Home() {
 
   const installAddons = useCallback(
     async (files: string[]) => {
-      await Promise.all(
-        files.map((file) =>
-          installAddon({
-            filePath: file,
-          })
-        )
-      );
-
-      mutateInstalledAddons();
+      setFiles(files);
     },
     [installAddon]
   );
@@ -40,6 +35,7 @@ export default function Home() {
   return (
     <div className="flex flex-col justify-start h-full">
       <FileDropListener onDrop={installAddons} />
+      <AddonInstaller files={files} setFiles={setFiles} />
       <div className="self-stretch flex flex-row justify-between p-4">
         <span className="font-extrabold text-3xl text-primary-200">Addons</span>
         <Button

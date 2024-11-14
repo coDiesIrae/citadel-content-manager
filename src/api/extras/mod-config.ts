@@ -18,6 +18,12 @@ export async function getAddonConfig(addonFileName: string) {
   );
 }
 
+export async function getAddonConfigs() {
+  const store = await createStore(".config");
+
+  return store.get<Record<string, AddonConfig>>("addons") ?? {};
+}
+
 export async function setAddonConfig(
   addonFileName: string,
   config: AddonConfig
@@ -46,4 +52,8 @@ export function useAddonConfigMutation(addonFileName: string) {
     [addonFileName],
     ([addonFileName], { arg }) => setAddonConfig(addonFileName, arg)
   );
+}
+
+export function useAddonConfigs() {
+  return useSWR("addonConfigs", getAddonConfigs);
 }

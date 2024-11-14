@@ -116,6 +116,16 @@ struct SearchPaths {
   write: Option<String>,
 }
 
+#[derive(Debug, Deserialize, Serialize)]
+pub struct InstallAddonInfo {
+  #[serde(rename = "filePath")]
+  file_path: String,
+  #[serde(rename = "fileName")]
+  file_name: Option<String>,
+  #[serde(rename = "displayName")]
+  display_name: Option<String>,
+}
+
 fn read_search_paths(path: &Path) -> Result<SearchPaths, SearchPathsError> {
   let game_info_path = path.join("game/citadel/gameinfo.gi");
 
@@ -448,7 +458,11 @@ pub fn list_mounted_addons(state: State<AppState>) -> Result<Vec<String>, AddonE
 }
 
 #[tauri::command]
-pub fn install_addon(state: State<AppState>, file_path: String) -> Result<(), AddonError> {
+pub fn install_addon(
+  state: State<AppState>,
+  input: InstallAddonInfo,
+  app_handle: AppHandle,
+) -> Result<(), AddonError> {
   let install_folder_path = state
     .install_path
     .lock()
@@ -456,7 +470,7 @@ pub fn install_addon(state: State<AppState>, file_path: String) -> Result<(), Ad
     .clone()
     .ok_or(AddonError::NoInstallPath)?;
 
-  let file_path = PathBuf::from(file_path);
+  let file_path = PathBuf::from(input.file_path);
 
   if !file_path.exists() {
     return Err(AddonError::InvalidAddonFile);
@@ -471,15 +485,46 @@ pub fn install_addon(state: State<AppState>, file_path: String) -> Result<(), Ad
     return Err(AddonError::InvalidAddonFile);
   }
 
-  let file_name = file_path
-    .file_name()
-    .ok_or(AddonError::InvalidAddonFile)?
-    .to_string_lossy()
-    .to_string();
+  let file_name = {
+    if let Some(file_name) = input.file_name {
+      file_name
+    } else {
+      file_path
+        .file_name()
+        .ok_or(AddonError::InvalidAddonFile)?
+        .to_string_lossy()
+        .to_string()
+    }
+  };
 
-  let destination = install_folder_path.join(file_name);
+  let destination = install_folder_path.join(&file_name);
 
   std::fs::copy(&file_path, &destination).map_err(AddonError::CouldNotWriteInstallFolder)?;
+
+  if let Some(display_name) = input.display_name {
+    let config_store = app_handle.store_builder(".config").build();
+
+    if !config_store.has("addons") {
+      config_store.set("addons", json!({}));
+    }
+
+    if let Some(mut current_addons) = config_store.get("addons") {
+      if let Some(addons_object) = current_addons.as_object_mut() {
+        addons_object.insert(
+          file_name.clone(),
+          json!(
+            {
+              "displayName": display_name
+            }
+          ),
+        );
+
+        config_store.set("addons", current_addons);
+
+        _ = config_store.save();
+      }
+    }
+  }
 
   Ok(())
 }

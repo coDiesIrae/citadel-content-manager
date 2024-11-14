@@ -1,4 +1,4 @@
-import { DeployMethod, SearchPathsState } from "./types";
+import { DeployMethod, InstallAddonInfo, SearchPathsState } from "./types";
 
 export type commands = {
   get_game_path: {
@@ -45,7 +45,7 @@ export type commands = {
   };
   install_addon: {
     input: {
-      filePath: string;
+      input: InstallAddonInfo;
     };
     output: undefined;
     error: string;
@@ -79,6 +79,7 @@ export type commands = {
   get_deploy_method: {
     input: undefined;
     output: DeployMethod;
+    error: undefined;
   };
   set_deploy_method: {
     input: {
