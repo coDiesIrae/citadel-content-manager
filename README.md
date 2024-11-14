@@ -22,6 +22,12 @@ Download the latest version from the [releases page](https://github.com/coDiesIr
 - 'Installed' (mounted) addons are addons that are in the `citadel/addons` directory
   - Uninstalling (unmounting) an addon will delete it from the `citadel/addons`, and, if it is not in the storage directory, will copy it to the storage directory
 
+## Symlinks (Experimental)
+
+You can enable symlink deployment in the settings menu. This will create symlinks to the addons in the storage directory instead of copying them. This is faster and uses less disk space, but may be less stable.
+
+Requires that the storage directory is on the same drive as the game directory.
+
 ## License
 
 Contents of this repository are available under [MIT license](LICENSE)
