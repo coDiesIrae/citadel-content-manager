@@ -4,6 +4,7 @@ use game::find_game_path;
 use tauri::Manager;
 use tauri_plugin_store::StoreExt;
 
+mod app;
 mod game;
 
 struct AppState {
@@ -37,7 +38,25 @@ pub fn run() {
       game::unmount_addon,
       game::set_deploy_method,
       game::is_symlink_available,
-      game::get_deploy_method
+      game::get_deploy_method,
+      app::commands::get_game_path_app,
+      app::commands::validate_custom_game_path_app,
+      app::commands::revalidate_custom_game_path_app,
+      app::commands::set_custom_game_path_app,
+      app::commands::get_storage_path_app,
+      app::commands::validate_storage_path_app,
+      app::commands::set_storage_path_app,
+      app::commands::get_deploy_method_app,
+      app::commands::validate_deploy_method_app,
+      app::commands::set_deploy_method_app,
+      app::commands::get_search_paths_state_app,
+      app::commands::mod_search_paths_app,
+      app::commands::mount_addon_app,
+      app::commands::unmount_addon_app,
+      app::commands::manage_addon_app,
+      app::commands::delete_addon_app,
+      app::commands::list_mounted_addons_app,
+      app::commands::list_managed_addons_app,
     ])
     .setup(|app| {
       if cfg!(debug_assertions) {
