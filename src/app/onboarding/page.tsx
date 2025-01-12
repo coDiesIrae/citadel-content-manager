@@ -8,16 +8,16 @@ import Link from "next/link";
 
 export default function Home() {
   const { data: installPath, mutate: mutateInstallPath } = useInvoke(
-    "get_install_path",
+    "get_storage_path_app",
     undefined
   );
   const { data: searchPathsState, mutate: mutateSearchPathsState } = useInvoke(
-    "get_search_paths_state",
+    "get_search_paths_state_app",
     undefined
   );
 
-  const { trigger: setInstallPath } = useInvokeMutate("set_install_path");
-  const { trigger: modSearchPaths } = useInvokeMutate("mod_search_paths");
+  const { trigger: setInstallPath } = useInvokeMutate("set_storage_path_app");
+  const { trigger: modSearchPaths } = useInvokeMutate("mod_search_paths_app");
 
   return (
     <div className="p-6 flex flex-col gap-8 h-screen w-screen">
@@ -45,7 +45,7 @@ export default function Home() {
               title: "Select addons install path",
             }).then((result) => {
               if (result !== null) {
-                setInstallPath({ installPath: result }).then(() => {
+                setInstallPath({ storagePath: result }).then(() => {
                   mutateInstallPath();
                 });
               }

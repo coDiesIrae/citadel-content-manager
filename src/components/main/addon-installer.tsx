@@ -35,12 +35,12 @@ export default function AddonInstaller({
   const [entries, setEntries] = useState<InstallAddonConfig[]>([]);
 
   const { data: installedAddons, mutate: mutateInstalledAddons } = useInvoke(
-    "list_installed_addons",
+    "list_managed_addons_app",
     undefined
   );
   const { data: addonConfigs } = useAddonConfigs();
 
-  const { trigger: installAddon } = useInvokeMutate("install_addon");
+  const { trigger: installAddon } = useInvokeMutate("manage_addon_app");
 
   const setEntriesValidateFileNames = useCallback(
     (entries: InstallAddonConfig[]) => {
@@ -122,10 +122,9 @@ export default function AddonInstaller({
     await Promise.all(
       entries.map((file) =>
         installAddon({
-          input: {
-            filePath: file.filePath,
-            displayName: file.displayName,
-            fileName: file.rename.active ? file.rename.fileName : undefined,
+          options: {
+            addonPath: file.filePath,
+            rename: file.rename.active ? file.rename.fileName : undefined,
           },
         })
       )

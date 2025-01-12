@@ -14,7 +14,7 @@ pub struct ManageAddonOptions {
   pub rename: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, Deserialize, Clone, PartialEq, Eq, Copy)]
 pub enum DeployMethod {
   Copy,
   Symlink,
@@ -110,7 +110,8 @@ pub fn mount_addon(
     return Err(MountAddonError::AlreadyMounted);
   }
 
-  std::fs::create_dir_all(&addon_mount_path).map_err(|e| MountAddonError::Write(e.to_string()))?;
+  std::fs::create_dir_all(addon_mount_path.parent().unwrap())
+    .map_err(|e| MountAddonError::Write(e.to_string()))?;
 
   match deploy_method {
     DeployMethod::Copy => {
@@ -216,11 +217,7 @@ pub fn list_mounted_addons(game_path: &Path) -> Result<Vec<String>, ReadMountedA
           f.path()
             .extension()
             .filter(|ext| *ext == OsStr::new(VPK_EXTENSION))
-            .and_then(|_| {
-              f.path()
-                .file_stem()
-                .map(|s| s.to_string_lossy().to_string())
-            })
+            .map(|_| f.file_name().to_string_lossy().to_string())
         })
       })
       .collect(),
@@ -241,11 +238,7 @@ pub fn list_managed_addons(storage_path: &Path) -> Result<Vec<String>, ReadManag
           f.path()
             .extension()
             .filter(|ext| *ext == OsStr::new(VPK_EXTENSION))
-            .and_then(|_| {
-              f.path()
-                .file_stem()
-                .map(|s| s.to_string_lossy().to_string())
-            })
+            .map(|_| f.file_name().to_string_lossy().to_string())
         })
       })
       .collect(),

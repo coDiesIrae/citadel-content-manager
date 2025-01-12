@@ -19,9 +19,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           url="/settings"
         />
 
+        <NavRoute
+          icon="icon-[lucide--bell]"
+          text="Notifications"
+          url="/notifications"
+          className="mt-auto mb-2"
+        />
+
         <Button
           asChild
-          className="flex self-stretch justify-center mt-auto items-center gap-2"
+          className="flex self-stretch justify-center items-center gap-2"
         >
           <a href="steam://run/1422450">
             <span className="icon-[lucide--play] size-5" />

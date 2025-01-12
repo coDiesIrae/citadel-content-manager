@@ -157,7 +157,7 @@ fn set_deploy_method(
   let game_path = get_current_game_path(app_state, app_handle).map_err(AppError::NoGamePath)?;
   let storage_path = get_current_storage_path(app_handle).ok_or(AppError::NoStoragePath)?;
 
-  validate_deploy_method(deploy_method.clone(), &game_path, &storage_path)?;
+  validate_deploy_method(deploy_method, &game_path, &storage_path)?;
 
   let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
 

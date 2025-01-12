@@ -8,9 +8,15 @@ export interface NavRouteProps {
   text: string;
   url: string;
   icon: string;
+  className?: string;
 }
 
-export default function NavRoute({ text, icon, url }: NavRouteProps) {
+export default function NavRoute({
+  text,
+  icon,
+  url,
+  className,
+}: NavRouteProps) {
   const pathname = usePathname();
 
   return (
@@ -18,7 +24,8 @@ export default function NavRoute({ text, icon, url }: NavRouteProps) {
       href={url}
       className={cn(
         "flex gap-2 items-center",
-        pathname === url && "text-primary-400"
+        pathname === url && "text-primary-400",
+        className
       )}
     >
       <span className={cn("size-6", icon)} />

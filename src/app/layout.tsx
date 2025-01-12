@@ -4,6 +4,7 @@ import { getMessages } from "next-intl/server";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import SWRClientConfig from "@/components/wrappers/swr";
+import { Toaster } from "@/components/ui/sonner";
 
 const inter = Inter({
   weight: ["400", "500", "600"],
@@ -38,6 +39,7 @@ export default async function RootLayout({
             {children}
           </NextIntlClientProvider>
         </SWRClientConfig>
+        <Toaster position="bottom-left" />
       </body>
     </html>
   );

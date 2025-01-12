@@ -1,7 +1,7 @@
 import useSWR, { mutate } from "swr";
+import useSWRMutation from "swr/mutation";
 import { commands } from "./commands";
 import invoke from "./invoke";
-import useSWRMutation, { SWRMutationConfiguration } from "swr/mutation";
 
 export function useInvoke<T extends keyof commands>(
   command: T,
@@ -24,8 +24,8 @@ export function useInvoke<T extends keyof commands>(
 
 export function useInvokeMutate<T extends keyof commands>(command: T) {
   return useSWRMutation<
-    | { success: boolean; result: commands[T]["output"]; error?: undefined }
-    | { success: boolean; error: commands[T]["error"]; result?: undefined },
+    | { success: true; result: commands[T]["output"]; error?: undefined }
+    | { success: false; error: commands[T]["error"]; result?: undefined },
     never,
     [T],
     commands[T]["input"]

@@ -1,39 +1,99 @@
 "use client";
 
 import { DeployMethod } from "@/api/types";
-import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { open } from "@tauri-apps/plugin-dialog";
-import { useState } from "react";
+import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
+import { Button } from "@/components/ui/button";
+import { use, useCallback, useState } from "react";
+import ErrorDialog from "./_components/error-dialog";
+import GamePathSelector from "./_components/game-path-selector";
+import StoragePathSelector from "./_components/storage-path-selector";
+import { Command } from "@/api/commands";
+import DeployMethodSelector from "./_components/deploy-method-selector";
+
+export interface Settings {
+  gamePath: string;
+  storagePath: string;
+  deployMethod: DeployMethod;
+}
 
 export default function SettingsPage() {
-  const { data: installPath, mutate: mutateInstallPath } = useInvoke(
-    "get_install_path",
-    undefined
+  const { trigger: setCustomGamePath } = useInvokeMutate(
+    "set_custom_game_path_app"
   );
-  const { data: symlinkAvailable, mutate: mutateSymlinkAvailable } = useInvoke(
-    "is_symlink_available",
-    undefined
+  const { trigger: setStoragePath } = useInvokeMutate("set_storage_path_app");
+  const { trigger: setDeployMethod } = useInvokeMutate("set_deploy_method_app");
+
+  const [settings, setSettings] = useState<Partial<Settings>>({});
+
+  const setValue = useCallback(
+    <K extends keyof Settings>(key: K) =>
+      (value: Settings[K] | undefined) => {
+        setSettings((prev) => ({
+          ...prev,
+          [key]: value,
+        }));
+      },
+    []
   );
 
-  const { data: deployMethod, mutate: mutateDeployMethod } = useInvoke(
-    "get_deploy_method",
-    undefined
+  const [error, setError] = useState<{
+    show: boolean;
+    message: string;
+    onClose?: () => void;
+  }>({
+    show: false,
+    message: "",
+  });
+
+  const setErrorMessage = useCallback(
+    (message: string, onClose?: () => void) => {
+      setError({
+        show: true,
+        message,
+        onClose,
+      });
+    },
+    []
   );
 
-  const { trigger: setInstallPath } = useInvokeMutate("set_install_path");
-  const { trigger: setDeployMethod } = useInvokeMutate("set_deploy_method");
+  const onReset = useCallback(() => {
+    setSettings({});
+  }, []);
 
-  const [error, setError] = useState<string>();
-  const [errorOpen, setErrorOpen] = useState(false);
+  const onSave = useCallback(async () => {
+    const promises = [];
+
+    const refresh = new Set<Command>();
+
+    if (settings.gamePath) {
+      promises.push(setCustomGamePath({ customGamePath: settings.gamePath }));
+
+      refresh.add("get_game_path_app");
+      refresh.add("get_search_paths_state_app");
+      refresh.add("list_mounted_addons_app");
+      refresh.add("get_deploy_method_app");
+    }
+
+    if (settings.storagePath) {
+      promises.push(setStoragePath({ storagePath: settings.storagePath }));
+
+      refresh.add("get_storage_path_app");
+      refresh.add("list_managed_addons_app");
+      refresh.add("get_deploy_method_app");
+    }
+
+    if (settings.deployMethod) {
+      promises.push(setDeployMethod({ deployMethod: settings.deployMethod }));
+
+      refresh.add("get_deploy_method_app");
+    }
+
+    await Promise.all(promises);
+
+    refresh.forEach((c) => mutateInvoke(c));
+
+    setSettings({});
+  }, [settings, setCustomGamePath, setStoragePath, setDeployMethod]);
 
   return (
     <div className="flex flex-col justify-start p-4 gap-4">
@@ -41,99 +101,43 @@ export default function SettingsPage() {
         <span className="font-extrabold text-3xl text-primary-200">
           Settings
         </span>
+
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            disabled={Object.keys(settings).length === 0}
+            onClick={onReset}
+          >
+            Reset
+          </Button>
+          <Button
+            disabled={Object.keys(settings).length === 0}
+            onClick={onSave}
+          >
+            Save
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 items-center gap-6">
-        <div className="flex flex-col gap-1">
-          <span className="font-bold text-lg">Addon storage path</span>
-          <span className="text-primary-200 text-sm">
-            The path where all your addons will be stored
-          </span>
-        </div>
-        <Input
-          type="text"
-          className="cursor-pointer text-lg h-10"
-          value={installPath ?? "Select..."}
-          readOnly
-          onClick={() => {
-            open({
-              directory: true,
-              multiple: false,
-              canCreateDirectories: true,
-              title: "Select addons install path",
-            }).then((result) => {
-              if (result !== null) {
-                setInstallPath({ installPath: result }).then((d) => {
-                  if (d.error) {
-                    setError(d.error);
-                    setErrorOpen(true);
-                  }
-                });
-                mutateInstallPath(undefined, {
-                  populateCache: false,
-                  revalidate: true,
-                  optimisticData: {
-                    success: true,
-                    result,
-                  },
-                });
-                mutateSymlinkAvailable();
-              }
-            });
-          }}
+        <GamePathSelector
+          path={settings.gamePath}
+          setPath={setValue("gamePath")}
+          setError={setErrorMessage}
         />
-
-        <div className="flex flex-col gap-1">
-          <span className="font-bold text-lg">Deploy method</span>
-          <span className="text-primary-200 text-sm">
-            How addons are deployed
-          </span>
-        </div>
-        <Tabs
-          value={deployMethod}
-          onValueChange={async (s) => {
-            const res = await setDeployMethod({
-              deployMethod: s as DeployMethod,
-            });
-
-            if (res.error) {
-              setError(res.error);
-              setErrorOpen(true);
-            } else {
-              mutateDeployMethod(undefined, {
-                populateCache: false,
-                revalidate: true,
-                optimisticData: {
-                  success: true,
-                  result: s as DeployMethod,
-                },
-              });
-            }
-          }}
-        >
-          <TabsList>
-            <TabsTrigger value="Copy" className="text-xl">
-              Copy
-            </TabsTrigger>
-            <TabsTrigger
-              value="Symlink"
-              disabled={!symlinkAvailable}
-              className="text-xl"
-            >
-              Symlink
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        <StoragePathSelector
+          path={settings.storagePath}
+          setPath={setValue("storagePath")}
+          setError={setErrorMessage}
+        />
+        <DeployMethodSelector
+          deployMethod={settings.deployMethod}
+          setDeployMethod={setValue("deployMethod")}
+          setError={setErrorMessage}
+        />
       </div>
 
-      <Dialog open={errorOpen} onOpenChange={setErrorOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Error</DialogTitle>
-            <DialogDescription>{error}</DialogDescription>
-          </DialogHeader>
-        </DialogContent>
-      </Dialog>
+      <ErrorDialog error={error} setError={setError} />
     </div>
   );
 }

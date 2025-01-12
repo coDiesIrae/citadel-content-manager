@@ -25,3 +25,8 @@ body {
     text-wrap: balance;
   }
 }
+
+.code {
+  @apply bg-surface-400/50 rounded-md py-0.5 px-1;
+}
+
