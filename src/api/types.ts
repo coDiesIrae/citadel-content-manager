@@ -59,8 +59,8 @@ export type SearchPathsError = TaggedEnum<
   | ["Read", string]
   | ["Write", string]
   | "NotFound"
-  | "Serialize"
-  | "Deserialize"
+  | ["Serialize", string]
+  | ["Deserialize", string]
   | "AlreadyModded"
 >;
 

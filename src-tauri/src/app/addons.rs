@@ -43,6 +43,12 @@ pub enum MountAddonError {
   Write(String),
 }
 
+impl MountAddonError {
+  pub fn io_write(e: std::io::Error) -> Self {
+    MountAddonError::Write(e.to_string())
+  }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", content = "data")]
 pub enum ManageAddonError {
@@ -53,16 +59,34 @@ pub enum ManageAddonError {
   Mounted,
 }
 
+impl ManageAddonError {
+  pub fn io_write(e: std::io::Error) -> Self {
+    ManageAddonError::Write(e.to_string())
+  }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", content = "data")]
 pub enum ReadMountedAddonsError {
   Read(String),
 }
 
+impl ReadMountedAddonsError {
+  pub fn io_read(e: std::io::Error) -> Self {
+    ReadMountedAddonsError::Read(e.to_string())
+  }
+}
+
 #[derive(Debug, Serialize)]
 #[serde(tag = "type", content = "data")]
 pub enum ReadManagedAddonsError {
   Read(String),
+}
+
+impl ReadManagedAddonsError {
+  pub fn io_read(e: std::io::Error) -> Self {
+    ReadManagedAddonsError::Read(e.to_string())
+  }
 }
 
 pub fn validate_deploy_method(
@@ -77,6 +101,7 @@ pub fn validate_deploy_method(
         .components()
         .next()
         .ok_or(DeployMethodError::InvalidGamePath)?;
+
       let storage_drive = storage_path
         .components()
         .next()
@@ -110,17 +135,15 @@ pub fn mount_addon(
     return Err(MountAddonError::AlreadyMounted);
   }
 
-  std::fs::create_dir_all(addon_mount_path.parent().unwrap())
-    .map_err(|e| MountAddonError::Write(e.to_string()))?;
+  std::fs::create_dir_all(addon_mount_path.parent().unwrap()).map_err(MountAddonError::io_write)?;
 
   match deploy_method {
     DeployMethod::Copy => {
-      std::fs::copy(addon_storage_path, addon_mount_path)
-        .map_err(|e| MountAddonError::Write(e.to_string()))?;
+      std::fs::copy(&addon_storage_path, &addon_mount_path).map_err(MountAddonError::io_write)?;
     }
     DeployMethod::Symlink => {
       std::os::windows::fs::symlink_file(&addon_storage_path, &addon_mount_path)
-        .map_err(|e| MountAddonError::Write(e.to_string()))?;
+        .map_err(MountAddonError::io_write)?;
     }
   }
 
@@ -140,10 +163,9 @@ pub fn unmount_addon(
   }
 
   if !addon_storage_path.exists() && !addon_mount_path.is_symlink() {
-    std::fs::rename(&addon_mount_path, &addon_storage_path)
-      .map_err(|e| MountAddonError::Write(e.to_string()))?;
+    std::fs::rename(&addon_mount_path, &addon_storage_path).map_err(MountAddonError::io_write)?;
   } else {
-    std::fs::remove_file(&addon_mount_path).map_err(|e| MountAddonError::Write(e.to_string()))?;
+    std::fs::remove_file(&addon_mount_path).map_err(MountAddonError::io_write)?;
   }
 
   Ok(())
@@ -167,15 +189,14 @@ pub fn manage_addon(
     options
       .addon_path
       .file_stem()
-      .unwrap()
-      .to_string_lossy()
+      .and_then(|f| f.to_str())
+      .ok_or(ManageAddonError::InvalidPath)?
       .to_string()
   };
 
   let addon_storage_path = storage_path.join(&addon_name).with_extension(VPK_EXTENSION);
 
-  std::fs::copy(&options.addon_path, &addon_storage_path)
-    .map_err(|e| ManageAddonError::Write(e.to_string()))?;
+  std::fs::copy(&options.addon_path, &addon_storage_path).map_err(ManageAddonError::io_write)?;
 
   Ok(())
 }
@@ -196,7 +217,7 @@ pub fn delete_addon(
     return Err(ManageAddonError::Mounted);
   }
 
-  std::fs::remove_file(&addon_storage_path).map_err(|e| ManageAddonError::Write(e.to_string()))?;
+  std::fs::remove_file(&addon_storage_path).map_err(ManageAddonError::io_write)?;
 
   Ok(())
 }
@@ -208,20 +229,22 @@ pub fn list_mounted_addons(game_path: &Path) -> Result<Vec<String>, ReadMountedA
     return Ok(vec![]);
   }
 
-  Ok(
-    addon_mount_path
-      .read_dir()
-      .map_err(|e| ReadMountedAddonsError::Read(e.to_string()))?
-      .filter_map(|entry| {
-        entry.ok().and_then(|f| {
-          f.path()
-            .extension()
-            .filter(|ext| *ext == OsStr::new(VPK_EXTENSION))
-            .map(|_| f.file_name().to_string_lossy().to_string())
-        })
-      })
-      .collect(),
-  )
+  let addons = addon_mount_path
+    .read_dir()
+    .map_err(ReadMountedAddonsError::io_read)?
+    .flat_map(|maybe_entry| {
+      let entry = maybe_entry.ok()?;
+
+      entry
+        .path()
+        .extension()
+        .filter(|ext| *ext == OsStr::new(VPK_EXTENSION))?;
+
+      entry.file_name().to_str().map(String::from)
+    })
+    .collect();
+
+  Ok(addons)
 }
 
 pub fn list_managed_addons(storage_path: &Path) -> Result<Vec<String>, ReadManagedAddonsError> {
@@ -229,18 +252,20 @@ pub fn list_managed_addons(storage_path: &Path) -> Result<Vec<String>, ReadManag
     return Ok(vec![]);
   }
 
-  Ok(
-    storage_path
-      .read_dir()
-      .map_err(|e| ReadManagedAddonsError::Read(e.to_string()))?
-      .filter_map(|entry| {
-        entry.ok().and_then(|f| {
-          f.path()
-            .extension()
-            .filter(|ext| *ext == OsStr::new(VPK_EXTENSION))
-            .map(|_| f.file_name().to_string_lossy().to_string())
-        })
-      })
-      .collect(),
-  )
+  let addons = storage_path
+    .read_dir()
+    .map_err(ReadManagedAddonsError::io_read)?
+    .flat_map(|maybe_entry| {
+      let entry = maybe_entry.ok()?;
+
+      entry
+        .path()
+        .extension()
+        .filter(|ext| *ext == OsStr::new(VPK_EXTENSION))?;
+
+      entry.file_name().to_str().map(String::from)
+    })
+    .collect();
+
+  Ok(addons)
 }

@@ -33,9 +33,27 @@ pub enum SearchPathsError {
   Read(String),
   Write(String),
   NotFound,
-  Serialize,
-  Deserialize,
+  Serialize(String),
+  Deserialize(String),
   AlreadyModded,
+}
+
+impl SearchPathsError {
+  pub fn io_read(e: std::io::Error) -> Self {
+    SearchPathsError::Read(e.to_string())
+  }
+
+  pub fn io_write(e: std::io::Error) -> Self {
+    SearchPathsError::Write(e.to_string())
+  }
+
+  pub fn serialize(e: keyvalues_serde::Error) -> Self {
+    SearchPathsError::Serialize(e.to_string())
+  }
+
+  pub fn deserialize(e: keyvalues_serde::Error) -> Self {
+    SearchPathsError::Deserialize(e.to_string())
+  }
 }
 
 impl SearchPaths {
@@ -61,9 +79,9 @@ pub fn read_gameinfo(game_path: &Path) -> Result<String, std::io::Error> {
 }
 
 pub fn read_search_paths(game_path: &Path) -> Result<ReadSearchPathsResult, SearchPathsError> {
-  let gameinfo = read_gameinfo(game_path).map_err(|e| SearchPathsError::Read(e.to_string()))?;
+  let gameinfo = read_gameinfo(game_path).map_err(SearchPathsError::io_read)?;
 
-  let mut lines = gameinfo.lines().map(|s| s.to_string()).collect::<Vec<_>>();
+  let mut lines = gameinfo.lines().collect::<Vec<_>>();
 
   let mut first_line_index = None;
   let mut last_line_index = None;
@@ -71,6 +89,7 @@ pub fn read_search_paths(game_path: &Path) -> Result<ReadSearchPathsResult, Sear
   for (i, line) in lines.iter().enumerate() {
     if first_line_index.is_some() && line.contains("}") {
       last_line_index = Some(i);
+
       break;
     }
 
@@ -80,11 +99,14 @@ pub fn read_search_paths(game_path: &Path) -> Result<ReadSearchPathsResult, Sear
   }
 
   let first_line_index = first_line_index.ok_or(SearchPathsError::NotFound)?;
-  let last_line_index = last_line_index.ok_or(SearchPathsError::Deserialize)?;
+  let last_line_index = last_line_index.ok_or(SearchPathsError::NotFound)?;
 
   let ident_size = lines[first_line_index].find("SearchPaths").unwrap();
 
-  let lines = lines.drain(first_line_index..=last_line_index).collect();
+  let lines = lines
+    .drain(first_line_index..=last_line_index)
+    .map(String::from)
+    .collect();
 
   Ok(ReadSearchPathsResult {
     lines,
@@ -97,8 +119,7 @@ pub fn read_search_paths(game_path: &Path) -> Result<ReadSearchPathsResult, Sear
 pub fn parse_search_paths(
   search_paths: &ReadSearchPathsResult,
 ) -> Result<SearchPaths, SearchPathsError> {
-  keyvalues_serde::from_str(&search_paths.lines.join("\n"))
-    .map_err(|_| SearchPathsError::Deserialize)
+  keyvalues_serde::from_str(&search_paths.lines.join("\n")).map_err(SearchPathsError::deserialize)
 }
 
 pub fn search_paths_state(search_paths: &SearchPaths) -> SearchPathsState {
@@ -119,14 +140,14 @@ pub fn write_search_paths(
   new_search_paths: &SearchPaths,
   old_search_paths: &ReadSearchPathsResult,
 ) -> Result<(), SearchPathsError> {
-  let gameinfo = read_gameinfo(game_path).map_err(|e| SearchPathsError::Read(e.to_string()))?;
+  let gameinfo = read_gameinfo(game_path).map_err(SearchPathsError::io_read)?;
 
-  let mut gameinfo_lines = gameinfo.lines().map(|s| s.to_string()).collect::<Vec<_>>();
+  let mut gameinfo_lines = gameinfo.lines().map(String::from).collect::<Vec<_>>();
 
   let ident = "\t".repeat(old_search_paths.ident_size);
 
   let new_search_paths_lines = keyvalues_serde::to_string(new_search_paths)
-    .map_err(|_| SearchPathsError::Serialize)?
+    .map_err(SearchPathsError::serialize)?
     .replace('\"', "")
     .split('\n')
     .map(|line| format!("{}{}", ident, line))
@@ -138,7 +159,7 @@ pub fn write_search_paths(
   );
 
   std::fs::write(get_gameinfo_path(game_path), gameinfo_lines.join("\n"))
-    .map_err(|e| SearchPathsError::Write(e.to_string()))?;
+    .map_err(SearchPathsError::io_write)?;
 
   Ok(())
 }
