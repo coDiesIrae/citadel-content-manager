@@ -2,14 +2,20 @@
 
 import UserStore, { CATEGORY_UNCATEGORIZED } from "@/api/stores/userData";
 import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
-import AddonInstaller from "@/components/main/addon-installer";
+import { installAddonsAtom } from "@/app/atoms/install";
 import FileDropListener from "@/components/main/file-drop-listener";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { open } from "@tauri-apps/plugin-dialog";
+import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import AddonCategory from "./_components/addon-category";
 
 export default function Home() {
-  const [files, setFiles] = useState<string[]>([]);
+  const router = useRouter();
+
+  const [, setFiles] = useAtom(installAddonsAtom);
 
   const { data: managedAddons } = useInvoke(
     "list_managed_addons_app",
@@ -31,6 +37,8 @@ export default function Home() {
   const installAddons = useCallback(
     async (files: string[]) => {
       setFiles(files);
+
+      router.push("/addons/install");
     },
     [installAddon]
   );
@@ -86,10 +94,31 @@ export default function Home() {
   return (
     <div className="flex flex-col justify-start h-full">
       <FileDropListener onDrop={installAddons} />
-      <AddonInstaller files={files} setFiles={setFiles} />
 
       <div className="self-stretch flex flex-row justify-between p-4">
         <span className="font-extrabold text-3xl text-primary-200">Addons</span>
+        <Button
+          className="items-center flex gap-1"
+          onClick={() => {
+            open({
+              multiple: true,
+              directory: false,
+              filters: [
+                {
+                  name: ".vpk",
+                  extensions: ["vpk"],
+                },
+              ],
+            }).then((r) => {
+              if (r === null) return;
+
+              installAddons(r);
+            });
+          }}
+        >
+          <span className="text-lg">Add</span>
+          <span className="icon-[lucide--plus] size-5" />
+        </Button>
       </div>
 
       <div className="self-stretch flex flex-row gap-1 items-center p-4">
@@ -105,8 +134,9 @@ export default function Home() {
       </div>
 
       <div className="flex flex-col flex-1 overflow-auto scrollbar-none px-4 pb-2 gap-6">
-        {Object.entries(groupedAddons).map(([_, { name, addons }], index) => (
+        {Object.entries(groupedAddons).map(([id, { name, addons }], index) => (
           <AddonCategory
+            id={parseInt(id)}
             key={index}
             name={name}
             addons={addons}

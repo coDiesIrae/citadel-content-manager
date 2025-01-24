@@ -1,9 +1,12 @@
+import UIStateStore from "@/api/stores/uiState";
 import AddonEntry from "@/components/main/addon-entry";
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export interface AddonCategoryProps {
+  id: number;
+
   name: string;
   addons: {
     path: string;
@@ -16,11 +19,18 @@ export interface AddonCategoryProps {
 }
 
 export default function AddonCategory({
+  id,
   addons,
   name,
   filter,
 }: AddonCategoryProps) {
-  const [open, setOpen] = useState(false);
+  const { data: categoryState } = UIStateStore.useCategoryState(id);
+
+  const [open, setOpen] = useState(categoryState?.expanded ?? false);
+
+  useEffect(() => {
+    setOpen(categoryState?.expanded ?? false);
+  }, [categoryState?.expanded]);
 
   const filteredAddons = useMemo(() => {
     if (!filter) return addons;
@@ -37,7 +47,10 @@ export default function AddonCategory({
     <div className="flex flex-col">
       <div
         className="flex self-stretch flex-row justify-between cursor-pointer bg-surface-100/10 items-center p-3 rounded-lg"
-        onClick={() => setOpen(!open)}
+        onClick={() => {
+          setOpen(!open);
+          UIStateStore.setCategoryState(id, { expanded: !open });
+        }}
       >
         <span className="font-bold text-lg">
           {name} - {filteredAddons.length}
