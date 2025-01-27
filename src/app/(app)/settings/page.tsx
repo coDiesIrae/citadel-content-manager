@@ -2,7 +2,7 @@
 
 import { Command } from "@/api/commands";
 import { DeployMethod } from "@/api/types";
-import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
+import { mutateInvoke, useInvoke, useInvokeMutate } from "@/api/useInvoke";
 import { Button } from "@/components/ui/button";
 import { useCallback, useState } from "react";
 import DeployMethodSelector from "./_components/deploy-method-selector";
@@ -17,11 +17,19 @@ export interface Settings {
 }
 
 export default function SettingsPage() {
+  const { data: mountedAddons } = useInvoke(
+    "list_mounted_addons_app",
+    undefined
+  );
+
   const { trigger: setCustomGamePath } = useInvokeMutate(
     "set_custom_game_path_app"
   );
   const { trigger: setStoragePath } = useInvokeMutate("set_storage_path_app");
   const { trigger: setDeployMethod } = useInvokeMutate("set_deploy_method_app");
+
+  const { trigger: mountAddon } = useInvokeMutate("mount_addon_app");
+  const { trigger: unmountAddon } = useInvokeMutate("unmount_addon_app");
 
   const [settings, setSettings] = useState<Partial<Settings>>({});
 
@@ -65,12 +73,17 @@ export default function SettingsPage() {
 
     const refresh = new Set<Command>();
 
+    const addons = [...(mountedAddons ?? [])];
+
+    await Promise.all(addons.map((a) => unmountAddon({ addonName: a })));
+
     if (settings.gamePath) {
       promises.push(setCustomGamePath({ customGamePath: settings.gamePath }));
 
       refresh.add("get_game_path_app");
       refresh.add("get_search_paths_state_app");
       refresh.add("list_mounted_addons_app");
+      refresh.add("list_managed_addons_app");
       refresh.add("get_deploy_method_app");
     }
 
@@ -78,6 +91,7 @@ export default function SettingsPage() {
       promises.push(setStoragePath({ storagePath: settings.storagePath }));
 
       refresh.add("get_storage_path_app");
+      refresh.add("list_mounted_addons_app");
       refresh.add("list_managed_addons_app");
       refresh.add("get_deploy_method_app");
     }
@@ -85,10 +99,14 @@ export default function SettingsPage() {
     if (settings.deployMethod) {
       promises.push(setDeployMethod({ deployMethod: settings.deployMethod }));
 
+      refresh.add("list_mounted_addons_app");
+      refresh.add("list_managed_addons_app");
       refresh.add("get_deploy_method_app");
     }
 
     await Promise.all(promises);
+
+    await Promise.all(addons.map((a) => mountAddon({ addonName: a })));
 
     refresh.forEach((c) => mutateInvoke(c));
 
