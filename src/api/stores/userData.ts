@@ -64,7 +64,7 @@ export default abstract class UserStore {
   }
 
   static useAddonMetadata(addonFileName: string) {
-    return useSWR(["addonMetadata", addonFileName], ([_, fileName]) =>
+    return useSWR(["addonMetadata", addonFileName], ([, fileName]) =>
       UserStore.getAddonMetadata(fileName)
     );
   }
@@ -82,7 +82,7 @@ export default abstract class UserStore {
   }
 
   static useAddonMetadataBulk(addonFileNames: string[]) {
-    return useSWR(["addonMetadataBulk", addonFileNames], ([_, fileNames]) =>
+    return useSWR(["addonMetadataBulk", addonFileNames], ([, fileNames]) =>
       UserStore.getAddonMetadataBulk(fileNames)
     );
   }

@@ -7,18 +7,17 @@ export function useInvoke<T extends keyof commands>(
   command: T,
   input: commands[T]["input"]
 ) {
-  const {
-    data,
-    error: _,
-    ...result
-  } = useSWR([command, input], async ([command, input]) => {
-    return await invoke(command, input);
-  });
+  const { data, ...result } = useSWR(
+    [command, input],
+    async ([command, input]) => {
+      return await invoke(command, input);
+    }
+  );
 
   return {
+    ...result,
     data: data?.result,
     error: data?.error,
-    ...result,
   };
 }
 

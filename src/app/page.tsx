@@ -26,7 +26,7 @@ export default function Home() {
     } else {
       router.replace("/setup");
     }
-  }, [completedOnboarding, isRevalidatingGamePath]);
+  }, [completedOnboarding, isRevalidatingGamePath, router]);
 
   return (
     <div className="h-screen w-screen flex flex-col items-center justify-end">
@@ -34,4 +34,3 @@ export default function Home() {
     </div>
   );
 }
-

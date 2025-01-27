@@ -42,7 +42,7 @@ export async function setAddonConfig(
 }
 
 export function useAddonConfig(addonFileName: string) {
-  return useSWR(["addonConfig", addonFileName], async ([_, addonFileName]) =>
+  return useSWR(["addonConfig", addonFileName], async ([, addonFileName]) =>
     getAddonConfig(addonFileName)
   );
 }

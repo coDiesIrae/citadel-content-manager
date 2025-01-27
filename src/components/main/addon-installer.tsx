@@ -132,7 +132,7 @@ export default function AddonInstaller({
 
     mutateInstalledAddons();
     setFiles([]);
-  }, [entries, setFiles]);
+  }, [entries, setFiles, installAddon, mutateInstalledAddons]);
 
   return (
     <Dialog open={files.length > 0}>

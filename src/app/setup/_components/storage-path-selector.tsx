@@ -64,7 +64,7 @@ export default function StoragePathSelector({
         selectStoragePath
       );
     }
-  }, [setStoragePath]);
+  }, [setStoragePath, mutateStoragePath, setError, validateStoragePath]);
 
   return (
     <>

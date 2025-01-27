@@ -1,7 +1,7 @@
 "use client";
 
 import UserStore, { CATEGORY_UNCATEGORIZED } from "@/api/stores/userData";
-import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
+import { useInvoke } from "@/api/useInvoke";
 import { installAddonsAtom } from "@/app/atoms/install";
 import FileDropListener from "@/components/main/file-drop-listener";
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,6 @@ export default function Home() {
   const { data: addonMetadata } = UserStore.useAllAddonMetadata();
   const { data: categories } = UserStore.useCategories();
 
-  const { trigger: installAddon } = useInvokeMutate("manage_addon_app");
-
   const [filter, setFilter] = useState("");
 
   const installAddons = useCallback(
@@ -40,7 +38,7 @@ export default function Home() {
 
       router.push("/addons/install");
     },
-    [installAddon]
+    [router, setFiles]
   );
 
   const groupedAddons = useMemo(() => {

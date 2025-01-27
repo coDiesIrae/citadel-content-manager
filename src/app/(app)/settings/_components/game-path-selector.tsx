@@ -47,7 +47,7 @@ export default function GamePathSelector({
     } else {
       setError(gamePathErrorMessage(validateResult.error), selectGamePath);
     }
-  }, [validateGamePath, gamePath, setError]);
+  }, [validateGamePath, gamePath, setError, setPath]);
 
   return (
     <>
@@ -67,7 +67,7 @@ export default function GamePathSelector({
             <Input
               type="text"
               className="cursor-pointer text-sm h-10 flex-1"
-              value={gamePath ?? "Select..."}
+              value={path ?? gamePath ?? "Select..."}
               readOnly
               onClick={selectGamePath}
             />

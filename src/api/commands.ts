@@ -3,7 +3,6 @@ import {
   DeployMethod,
   DeployMethodError,
   GamePathError,
-  InstallAddonInfo,
   ManageAddonError,
   ManageAddonsOptions,
   MountAddonError,

@@ -1,7 +1,6 @@
 import UIStateStore from "@/api/stores/uiState";
 import AddonEntry from "@/components/main/addon-entry";
 import { cn } from "@/lib/utils";
-import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useMemo, useState } from "react";
 
 export interface AddonCategoryProps {

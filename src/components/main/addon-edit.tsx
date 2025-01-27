@@ -1,18 +1,7 @@
-import useSWRMutation from "swr/mutation";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../ui/sheet";
-import UserStore, { AddonMetadata } from "@/api/stores/userData";
-import useSWR, { mutate } from "swr";
+import UserStore from "@/api/stores/userData";
 import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { ElementRef, useCallback, useMemo, useRef, useState } from "react";
+import { Button } from "../ui/button";
 import {
   Command,
   CommandEmpty,
@@ -21,6 +10,15 @@ import {
   CommandItem,
   CommandList,
 } from "../ui/command";
+import { Input } from "../ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
 
 export interface AddonEditProps {
   open: boolean;
@@ -54,7 +52,7 @@ export default function AddonEdit({
   const [newCategory, setNewCategory] = useState("");
 
   const filteredCategories = useMemo(() => {
-    return Object.entries(categories ?? {}).filter(([_, name]) =>
+    return Object.entries(categories ?? {}).filter(([, name]) =>
       name.toLowerCase().includes(categoryInput.toLowerCase())
     );
   }, [categories, categoryInput]);
@@ -98,7 +96,7 @@ export default function AddonEdit({
                 newMetadata.category = -1;
               } else {
                 const categoryId = Object.entries(categories).find(
-                  ([_, name]) => name === newCategory
+                  ([, name]) => name === newCategory
                 )?.[0];
 
                 if (!categoryId) {

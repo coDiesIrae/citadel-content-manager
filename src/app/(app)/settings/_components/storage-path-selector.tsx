@@ -53,7 +53,7 @@ export default function StoragePathSelector({
         selectGamePath
       );
     }
-  }, [validateStoragePath, storagePath, setError]);
+  }, [validateStoragePath, storagePath, setError, setPath]);
 
   return (
     <>

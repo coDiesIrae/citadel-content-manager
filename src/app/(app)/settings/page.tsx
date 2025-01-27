@@ -1,14 +1,14 @@
 "use client";
 
+import { Command } from "@/api/commands";
 import { DeployMethod } from "@/api/types";
 import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
 import { Button } from "@/components/ui/button";
-import { use, useCallback, useState } from "react";
+import { useCallback, useState } from "react";
+import DeployMethodSelector from "./_components/deploy-method-selector";
 import ErrorDialog from "./_components/error-dialog";
 import GamePathSelector from "./_components/game-path-selector";
 import StoragePathSelector from "./_components/storage-path-selector";
-import { Command } from "@/api/commands";
-import DeployMethodSelector from "./_components/deploy-method-selector";
 
 export interface Settings {
   gamePath: string;

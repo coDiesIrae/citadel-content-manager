@@ -44,7 +44,7 @@ export default function DeployMethodSelector({
         );
       }
     },
-    [selectedDeployMethod]
+    [selectedDeployMethod, setDeployMethod, setError, validateDeployMethod]
   );
 
   return (

@@ -41,7 +41,7 @@ export default function SetupPage() {
   return (
     <div className="p-6 flex flex-col gap-8 h-screen w-screen">
       <span className="text-2xl font-bold">
-        Welcome to Addon Manager! Let's get you set up
+        Welcome to Addon Manager! Let&apos;s get you set up
       </span>
 
       <div className="grid grid-cols-2 items-center gap-6">

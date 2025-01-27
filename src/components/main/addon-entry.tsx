@@ -3,7 +3,6 @@
 import UserStore from "@/api/stores/userData";
 import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
 import { useState } from "react";
-import useSWR from "swr";
 import { Switch } from "../ui/switch";
 import AddonEdit from "./addon-edit";
 

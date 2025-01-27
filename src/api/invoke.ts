@@ -2,7 +2,7 @@ import { invoke as tauriInvoke } from "@tauri-apps/api/core";
 
 import { commands } from "./commands";
 
-export const errorLog = [] as any[];
+export const errorLog = [] as unknown[];
 
 export default async function invoke<T extends keyof commands>(
   command: T,
@@ -11,7 +11,7 @@ export default async function invoke<T extends keyof commands>(
   try {
     const result = await tauriInvoke<commands[T]["output"]>(command, input);
     return {
-      success: true as true,
+      success: true as const,
       result: result,
     };
   } catch (error) {
@@ -22,7 +22,7 @@ export default async function invoke<T extends keyof commands>(
     });
 
     return {
-      success: false as false,
+      success: false as const,
       error: error as commands[T]["error"],
     };
   }

@@ -46,7 +46,7 @@ export default function InstallAdonsPage() {
     setFileNames([]);
 
     router.push("/addons");
-  }, [entries, setFileNames]);
+  }, [entries, setFileNames, installAddon, mutateInstalledAddons, router]);
 
   return (
     <div className="flex flex-col justify-start h-full">

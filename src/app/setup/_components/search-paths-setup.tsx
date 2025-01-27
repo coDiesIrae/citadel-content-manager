@@ -42,7 +42,7 @@ export default function SearchPathsSetup({ setError }: SearchPathsSetupProps) {
         onMod
       );
     }
-  }, [modSearchPaths]);
+  }, [modSearchPaths, mutateSearchPaths, setError]);
 
   return (
     <>
@@ -50,7 +50,7 @@ export default function SearchPathsSetup({ setError }: SearchPathsSetupProps) {
         <span className="font-bold text-lg">Search Paths</span>
 
         <span className="text-primary-200 text-sm">
-          <span className="code text-white">gameinfo.gi</span>'s{" "}
+          <span className="code text-white">gameinfo.gi</span>&apos;s{" "}
           <span className="text-white code">SearchPaths</span> block, must be
           modded for addons to be recognized by the game.
         </span>
