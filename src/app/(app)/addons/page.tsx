@@ -131,7 +131,7 @@ export default function Home() {
         />
       </div>
 
-      <div className="flex flex-col flex-1 overflow-auto scrollbar-none px-4 pb-2 gap-6">
+      <div className="flex flex-col flex-1 overflow-auto scrollbar-none px-4 pb-2 gap-3">
         {Object.entries(groupedAddons).map(([id, { name, addons }], index) => (
           <AddonCategory
             id={parseInt(id)}

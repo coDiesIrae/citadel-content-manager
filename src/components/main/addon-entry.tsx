@@ -23,7 +23,7 @@ export default function AddonEntry({
   const [editOpen, setEditOpen] = useState(false);
 
   return (
-    <div className="rounded-xl bg-surface-500 p-4 flex flex-row items-center gap-4 border border-surface-100/30">
+    <div className="rounded-lg bg-surface-500 px-4 py-1.5 flex flex-row items-center gap-4 border border-surface-100/30">
       <Switch
         checked={mounted}
         onCheckedChange={async () => {

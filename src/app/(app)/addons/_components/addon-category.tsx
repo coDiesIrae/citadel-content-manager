@@ -42,10 +42,12 @@ export default function AddonCategory({
     );
   }, [addons, filter, name]);
 
+  if (filteredAddons.length === 0) return null;
+
   return (
     <div className="flex flex-col">
       <div
-        className="flex self-stretch flex-row justify-between cursor-pointer bg-surface-100/10 items-center p-3 rounded-lg"
+        className="flex self-stretch flex-row justify-between cursor-pointer bg-surface-100/10 items-center px-3 py-1.5 rounded-md"
         onClick={() => {
           setOpen(!open);
           UIStateStore.setCategoryState(id, { expanded: !open });
@@ -64,8 +66,8 @@ export default function AddonCategory({
 
       <div
         className={cn(
-          "flex flex-col gap-3",
-          open && filteredAddons.length > 0 && "mt-4"
+          "flex flex-col gap-1",
+          open && filteredAddons.length > 0 && "mt-2"
         )}
       >
         {open &&
