@@ -74,8 +74,14 @@ export default function SettingsPage() {
     const refresh = new Set<Command>();
 
     const addons = [...(mountedAddons ?? [])];
+    const remountAddons =
+      settings.deployMethod !== undefined ||
+      settings.gamePath !== undefined ||
+      settings.storagePath !== undefined;
 
-    await Promise.all(addons.map((a) => unmountAddon({ addonName: a })));
+    if (remountAddons) {
+      await Promise.all(addons.map((a) => unmountAddon({ addonName: a })));
+    }
 
     if (settings.gamePath) {
       promises.push(setCustomGamePath({ customGamePath: settings.gamePath }));
@@ -106,7 +112,9 @@ export default function SettingsPage() {
 
     await Promise.all(promises);
 
-    await Promise.all(addons.map((a) => mountAddon({ addonName: a })));
+    if (remountAddons) {
+      await Promise.all(addons.map((a) => mountAddon({ addonName: a })));
+    }
 
     refresh.forEach((c) => mutateInvoke(c));
 
