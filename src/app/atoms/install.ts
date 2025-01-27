@@ -1,3 +1,3 @@
 import { atom } from "jotai";
 
-export const installAddonsAtom = atom<string[]>();
+export const installAddonsAtom = atom<string[]>([]);
