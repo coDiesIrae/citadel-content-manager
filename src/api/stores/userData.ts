@@ -154,6 +154,31 @@ export default abstract class UserStore {
     );
   }
 
+  static async setAddonMetadataPartial(
+    addonFileName: string,
+    metadata: Partial<AddonMetadata>
+  ) {
+    const addons = await UserStore.getValue("addons");
+
+    await UserStore.setValue("addons", {
+      ...addons,
+      [addonFileName]: {
+        ...addons[addonFileName],
+        ...metadata,
+      },
+    });
+  }
+
+  static useMutateAddonMetadataPartial() {
+    return useSWRMutation(
+      ["set_addon_metadata_partial"],
+      (
+        _,
+        { arg }: { arg: { fileName: string; metadata: Partial<AddonMetadata> } }
+      ) => UserStore.setAddonMetadataPartial(arg.fileName, arg.metadata)
+    );
+  }
+
   static async setAddonMetadataBulk(metadata: Record<string, AddonMetadata>) {
     const addons = await UserStore.getValue("addons");
 

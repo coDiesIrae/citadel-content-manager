@@ -15,6 +15,10 @@ import EntryCollisionHeader from "./_components/entry-collision-header";
 import EntryDisplayNameEdit from "./_components/entry-display-name-edit";
 import EntryFileNameEdit from "./_components/entry-file-name-edit";
 import useFileEntries from "./_hooks/useFileEntries";
+import UserStore from "@/api/stores/userData";
+import { toast } from "sonner";
+import { genericAppErrorMessage } from "@/api/errorMessages/app";
+import { manageAddonErrorMessage } from "@/api/errorMessages/manageAddon";
 
 export default function InstallAdonsPage() {
   const router = useRouter();
@@ -28,25 +32,55 @@ export default function InstallAdonsPage() {
 
   const { trigger: installAddon } = useInvokeMutate("manage_addon_app");
 
+  const { trigger: setAddonMetadata } =
+    UserStore.useMutateAddonMetadataPartial();
+
   const [{ entries }, dispatchEntries] = useFileEntries();
 
   const installAddons = useCallback(async () => {
     await Promise.all(
-      entries.map((file) =>
-        installAddon({
+      entries.map(async (file) => {
+        const res = await installAddon({
           options: {
             addonPath: file.filePath,
             rename: file.rename.active ? file.rename.fileName : undefined,
           },
-        })
-      )
+        });
+
+        if (res.success) {
+          await setAddonMetadata({
+            fileName: file.fileName,
+            metadata: {
+              displayName: file.displayName,
+            },
+          });
+        } else {
+          toast.error(
+            <div className="flex flex-col gap-2">
+              <span className="text-xl font-semibold text-primary-200">
+                {file.fileName} - An error occurred while installing addon
+              </span>
+              <span className="text-base">
+                {genericAppErrorMessage(res.error, manageAddonErrorMessage)}
+              </span>
+            </div>
+          );
+        }
+      })
     );
 
     mutateInstalledAddons();
     setFileNames([]);
 
     router.push("/addons");
-  }, [entries, setFileNames, installAddon, mutateInstalledAddons, router]);
+  }, [
+    entries,
+    setFileNames,
+    installAddon,
+    mutateInstalledAddons,
+    setAddonMetadata,
+    router,
+  ]);
 
   return (
     <div className="flex flex-col justify-start h-full">

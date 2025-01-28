@@ -5,6 +5,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import SWRClientConfig from "@/components/wrappers/swr";
 import { Toaster } from "@/components/ui/sonner";
+import SearchPathsChecker from "./_components/search-paths-checker";
 
 const inter = Inter({
   weight: ["400", "500", "600"],
@@ -39,9 +40,11 @@ export default async function RootLayout({
             {children}
           </NextIntlClientProvider>
         </SWRClientConfig>
-        <Toaster position="bottom-left" />
+
+        <SearchPathsChecker />
+
+        <Toaster position="bottom-right" duration={5000} closeButton />
       </body>
     </html>
   );
 }
-

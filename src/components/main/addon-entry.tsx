@@ -1,8 +1,11 @@
 "use client";
 
+import { genericAppErrorMessage } from "@/api/errorMessages/app";
+import { mountAddonErrorMessage } from "@/api/errorMessages/mountAddon";
 import UserStore from "@/api/stores/userData";
 import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
 import { useState } from "react";
+import { toast } from "sonner";
 import { Switch } from "../ui/switch";
 import AddonEdit from "./addon-edit";
 
@@ -38,6 +41,18 @@ export default function AddonEntry({
           if (res.success) {
             mutateInvoke("list_managed_addons_app");
             mutateInvoke("list_mounted_addons_app");
+          } else {
+            toast.error(
+              <div className="flex flex-col gap-2">
+                <span className="text-xl font-semibold text-primary-200">
+                  {metadata?.displayName ?? fileName} - Failed to{" "}
+                  {mounted ? "unmount" : "mount"}
+                </span>
+                <span className="text-base">
+                  {genericAppErrorMessage(res.error, mountAddonErrorMessage)}
+                </span>
+              </div>
+            );
           }
         }}
       />

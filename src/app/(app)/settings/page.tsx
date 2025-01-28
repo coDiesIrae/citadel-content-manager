@@ -9,6 +9,11 @@ import DeployMethodSelector from "./_components/deploy-method-selector";
 import ErrorDialog from "./_components/error-dialog";
 import GamePathSelector from "./_components/game-path-selector";
 import StoragePathSelector from "./_components/storage-path-selector";
+import { toast } from "sonner";
+import { genericAppErrorMessage } from "@/api/errorMessages/app";
+import { mountAddonErrorMessage } from "@/api/errorMessages/mountAddon";
+import { Separator } from "@/components/ui/separator";
+import SearchPathsSetup from "./_components/search-paths-setup";
 
 export interface Settings {
   gamePath: string;
@@ -80,7 +85,31 @@ export default function SettingsPage() {
       settings.storagePath !== undefined;
 
     if (remountAddons) {
-      await Promise.all(addons.map((a) => unmountAddon({ addonName: a })));
+      const res = await Promise.all(
+        addons.map((a) =>
+          unmountAddon({ addonName: a }).then((r) => ({
+            ...r,
+            addonName: a,
+          }))
+        )
+      );
+
+      const err = res.find((r) => !r.success);
+
+      if (err) {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <span className="text-xl font-semibold">
+              {err.addonName} - An error occurred while unmounting addons
+            </span>
+            <span className="text-base">
+              {genericAppErrorMessage(err.error, mountAddonErrorMessage)}
+            </span>
+          </div>
+        );
+
+        return;
+      }
     }
 
     if (settings.gamePath) {
@@ -110,16 +139,61 @@ export default function SettingsPage() {
       refresh.add("get_deploy_method_app");
     }
 
-    await Promise.all(promises);
+    {
+      const result = await Promise.all(promises);
+
+      const errors = result.find((r) => !r.success);
+
+      if (errors) {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <span className="text-xl font-semibold">
+              An error occurred while saving settings
+            </span>
+            <span className="text-base">
+              See the error log for more information
+            </span>
+          </div>
+        );
+      }
+    }
 
     if (remountAddons) {
-      await Promise.all(addons.map((a) => mountAddon({ addonName: a })));
+      const res = await Promise.all(
+        addons.map((a) =>
+          mountAddon({ addonName: a }).then((r) => ({ ...r, addonName: a }))
+        )
+      );
+
+      const err = res.find((r) => !r.success);
+
+      if (err) {
+        toast.error(
+          <div className="flex flex-col gap-2">
+            <span className="text-xl font-semibold">
+              <span className="code">{err.addonName}</span> - An error occurred
+              while remounting addons
+            </span>
+            <span className="text-base">
+              {genericAppErrorMessage(err.error, mountAddonErrorMessage)}
+            </span>
+          </div>
+        );
+      }
     }
 
     refresh.forEach((c) => mutateInvoke(c));
 
     setSettings({});
-  }, [settings, setCustomGamePath, setStoragePath, setDeployMethod]);
+  }, [
+    settings,
+    setCustomGamePath,
+    setStoragePath,
+    setDeployMethod,
+    mountAddon,
+    mountedAddons,
+    unmountAddon,
+  ]);
 
   return (
     <div className="flex flex-col justify-start p-4 gap-4">
@@ -161,6 +235,12 @@ export default function SettingsPage() {
           setDeployMethod={setValue("deployMethod")}
           setError={setErrorMessage}
         />
+      </div>
+
+      <Separator className="my-6" />
+
+      <div className="grid grid-cols-2 items-center gap-6">
+        <SearchPathsSetup />
       </div>
 
       <ErrorDialog error={error} setError={setError} />
