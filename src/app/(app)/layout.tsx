@@ -1,5 +1,4 @@
 import NavRoute from "@/components/nav/route";
-import { Button } from "@/components/ui/button";
 import LaunchGameButton from "./_components/run-game";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

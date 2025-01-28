@@ -35,7 +35,7 @@ export default function SearchPathsChecker() {
         </div>
       );
     }
-  }, [searchPathsState]);
+  }, [searchPathsState, router]);
 
   return null;
 }
