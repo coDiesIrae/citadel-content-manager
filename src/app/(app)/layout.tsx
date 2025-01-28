@@ -1,5 +1,6 @@
 import NavRoute from "@/components/nav/route";
 import { Button } from "@/components/ui/button";
+import LaunchGameButton from "./_components/run-game";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -26,15 +27,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
           className="mt-auto mb-2"
         />
 
-        <Button
-          asChild
-          className="flex self-stretch justify-center items-center gap-2"
-        >
-          <a href="steam://run/1422450">
-            <span className="icon-[lucide--play] size-5" />
-            <span className="text-lg pr-1 font-semibold">Launch game</span>
-          </a>
-        </Button>
+        <LaunchGameButton />
       </div>
       <div className="flex-1">{children}</div>
     </div>
