@@ -7,6 +7,7 @@ import { genericAppErrorMessage } from "@/api/errorMessages/app";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import ChangedHighlighter from "./changed-highlighter";
 
 export interface StoragePathSelectorProps {
   setError: (error: string, onClose?: () => void) => void;
@@ -56,8 +57,10 @@ export default function StoragePathSelector({
   }, [validateStoragePath, storagePath, setError, setPath]);
 
   return (
-    <>
-      <div className="flex flex-col gap-1">
+    <div className="col-span-2 flex flex-row items-center gap-6 relative">
+      <ChangedHighlighter active={path !== undefined} />
+
+      <div className="flex flex-col gap-1 flex-1">
         <span className="font-bold text-lg">Addon storage path</span>
         <span className="text-primary-200 text-sm">
           <p>Folder, where all addons managed by this app will be stored.</p>
@@ -69,7 +72,7 @@ export default function StoragePathSelector({
         </span>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-1">
         {storagePathLoading ? (
           <Skeleton className="h-10 flex-1" />
         ) : (
@@ -98,6 +101,6 @@ export default function StoragePathSelector({
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

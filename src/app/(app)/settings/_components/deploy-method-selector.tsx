@@ -5,6 +5,7 @@ import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useCallback } from "react";
+import ChangedHighlighter from "./changed-highlighter";
 
 export interface DeployMethodSelectorProps {
   deployMethod: DeployMethod | undefined;
@@ -48,12 +49,14 @@ export default function DeployMethodSelector({
   );
 
   return (
-    <>
-      <div className="flex flex-col gap-1">
+    <div className="col-span-2 flex flex-row items-center gap-6 relative">
+      <ChangedHighlighter active={selectedDeployMethod !== undefined} />
+
+      <div className="flex flex-col gap-1 flex-1">
         <span className="font-bold text-lg">Deploy Method</span>
       </div>
 
-      <div className="flex gap-3">
+      <div className="flex gap-3 flex-1">
         {deployMethodLoading ? (
           <Skeleton className="h-10 flex-1" />
         ) : (
@@ -79,6 +82,6 @@ export default function DeployMethodSelector({
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }

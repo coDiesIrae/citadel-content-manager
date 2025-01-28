@@ -6,6 +6,7 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { gamePathErrorMessage } from "@/api/errorMessages/gamePath";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { cn } from "@/lib/utils";
+import ChangedHighlighter from "./changed-highlighter";
 
 export interface GamePathSelectorProps {
   path: string | undefined;
@@ -50,8 +51,10 @@ export default function GamePathSelector({
   }, [validateGamePath, gamePath, setError, setPath]);
 
   return (
-    <>
-      <div className="flex flex-col gap-1">
+    <div className="col-span-2 flex flex-row items-center gap-6 relative">
+      <ChangedHighlighter active={path !== undefined} />
+
+      <div className="flex flex-col gap-1 flex-1">
         <span className="font-bold text-lg">Game installation path</span>
         <span className="text-primary-200 text-sm">
           Path to the <span className="text-white code">Deadlock</span> or{" "}
@@ -59,7 +62,7 @@ export default function GamePathSelector({
         </span>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-1">
         {gamePathLoading ? (
           <Skeleton className="h-10 flex-1" />
         ) : (
@@ -87,6 +90,6 @@ export default function GamePathSelector({
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }
