@@ -182,7 +182,7 @@ export default function SettingsPage() {
       }
     }
 
-    refresh.forEach((c) => mutateInvoke(c));
+    await Promise.all(refresh.values().map((c) => mutateInvoke(c)));
 
     setSettings({});
   }, [
