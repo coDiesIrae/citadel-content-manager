@@ -69,7 +69,7 @@ export default function GamePathSelector({ setError }: GamePathSelectorProps) {
         <span className="font-bold text-lg">Game installation path</span>
         <span className="text-primary-200 text-sm">
           Path to the <span className="text-white code">Deadlock</span> or{" "}
-          <span className="text-white code">project8</span> folder.
+          <span className="text-white code">Project8Staging</span> folder.
         </span>
       </div>
 
