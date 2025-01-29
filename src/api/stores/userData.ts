@@ -195,4 +195,16 @@ export default abstract class UserStore {
         UserStore.setAddonMetadataBulk(arg)
     );
   }
+
+  static async setAllAddonMetadata(metadata: Record<string, AddonMetadata>) {
+    await UserStore.setValue("addons", metadata);
+  }
+
+  static useMutateAllAddonMetadata() {
+    return useSWRMutation(
+      ["set_all_addon_metadata"],
+      (_, { arg }: { arg: Record<string, AddonMetadata> }) =>
+        UserStore.setAllAddonMetadata(arg)
+    );
+  }
 }

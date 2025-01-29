@@ -11,6 +11,7 @@ import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useCallback, useMemo, useState } from "react";
 import AddonCategory from "./_components/addon-category";
+import EditCategories from "./_components/edit-categories";
 
 export default function Home() {
   const router = useRouter();
@@ -122,13 +123,15 @@ export default function Home() {
       <div className="self-stretch flex flex-row gap-1 items-center p-4">
         <span className="icon-[lucide--search] size-6" />
         <Input
-          className="border-white/60 border-none text-lg"
+          className="border-white/60 border-none text-lg flex-1"
           value={filter}
           onChange={(e) => {
             setFilter(e.target.value.toLowerCase());
           }}
           placeholder="Search..."
         />
+
+        <EditCategories />
       </div>
 
       <div className="flex flex-col flex-1 overflow-auto scrollbar-none px-4 pb-2 gap-3">
