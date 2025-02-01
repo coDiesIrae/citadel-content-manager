@@ -12,7 +12,7 @@ export interface FileDropListenerProps {
 }
 
 export default function FileDropListener({ onDrop }: FileDropListenerProps) {
-  const unlistenFn = useRef<() => void>();
+  const unlistenFn = useRef<() => void>(undefined);
 
   const [dragState, setDragState] = useState<DragState>(DragState.None);
 

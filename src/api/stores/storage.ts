@@ -1,4 +1,4 @@
-import { getStore, load as loadStore } from "@tauri-apps/plugin-store";
+import { load as loadStore } from "@tauri-apps/plugin-store";
 import { AsyncStorage } from "jotai/vanilla/utils/atomWithStorage";
 
 export default function storeStorage<D>(name: string) {
