@@ -1,13 +1,13 @@
 import { GamePathError, InvalidGamePath } from "../types";
 
-export function invalidGamePathErrorMessage(error: InvalidGamePath) {
+export function invalidGamePathErrorMessage(error: InvalidGamePath): string {
   switch (error.type) {
     case "NoGameInfo":
       return "gameinfo.gi file not found";
   }
 }
 
-export function gamePathErrorMessage(error: GamePathError) {
+export function gamePathErrorMessage(error: GamePathError): string {
   switch (error.type) {
     case "SteamNotFound":
       return "Steam installation not found";
@@ -17,5 +17,7 @@ export function gamePathErrorMessage(error: GamePathError) {
       return `Invalid game installation: ${invalidGamePathErrorMessage(
         error.data
       )}`;
+    case "CreateStore":
+      return `Failed to initialize configuration storage: ${error.data}`;
   }
 }

@@ -17,6 +17,7 @@ pub enum GamePathError {
   SteamNotFound,
   GameNotFound,
   Invalid(InvalidGamePath),
+  CreateStore(String),
 }
 
 impl From<InvalidGamePath> for GamePathError {
@@ -25,14 +26,21 @@ impl From<InvalidGamePath> for GamePathError {
   }
 }
 
-pub fn find_game_path_raw() -> Result<PathBuf, GamePathError> {
-  let mut steam_dir = SteamDir::locate().ok_or(GamePathError::SteamNotFound)?;
+impl From<tauri_plugin_store::Error> for GamePathError {
+  fn from(e: tauri_plugin_store::Error) -> Self {
+    GamePathError::CreateStore(e.to_string())
+  }
+}
 
-  let game_dir = steam_dir
-    .app(&DEADLOCK_APP_ID)
+pub fn find_game_path_raw() -> Result<PathBuf, GamePathError> {
+  let steam_dir = SteamDir::locate().map_err(|_| GamePathError::SteamNotFound)?;
+
+  let (deadlock_app, lib) = steam_dir
+    .find_app(DEADLOCK_APP_ID)
+    .map_err(|_| GamePathError::GameNotFound)?
     .ok_or(GamePathError::GameNotFound)?;
 
-  Ok(game_dir.path.clone())
+  Ok(lib.resolve_app_dir(&deadlock_app))
 }
 
 pub fn validate_game_path(game_path: &Path) -> Result<(), InvalidGamePath> {

@@ -11,7 +11,10 @@ export type TaggedEnum<T> = T extends string
   : never;
 
 export type AppError<T> = TaggedEnum<
-  ["NoGamePath", GamePathError] | "NoStoragePath" | ["Module", T]
+  | ["NoGamePath", GamePathError]
+  | "NoStoragePath"
+  | ["Module", T]
+  | ["CreateStore", string]
 >;
 
 // addons.rs
@@ -48,7 +51,10 @@ export type ReadManagedAddonsError = TaggedEnum<["Read", string]>;
 export type InvalidGamePath = TaggedEnum<"NoGameInfo">;
 
 export type GamePathError = TaggedEnum<
-  "SteamNotFound" | "GameNotFound" | ["Invalid", InvalidGamePath]
+  | "SteamNotFound"
+  | "GameNotFound"
+  | ["Invalid", InvalidGamePath]
+  | ["CreateStore", string]
 >;
 
 // search_paths.rs
@@ -67,5 +73,9 @@ export type SearchPathsError = TaggedEnum<
 // storage.rs
 
 export type StoragePathError = TaggedEnum<
-  "DoesNotExist" | "NotADirectory" | "NotEmpty" | "InsideGamePath"
+  | "DoesNotExist"
+  | "NotADirectory"
+  | "NotEmpty"
+  | "InsideGamePath"
+  | ["CreateStore", string]
 >;

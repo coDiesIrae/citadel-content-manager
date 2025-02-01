@@ -11,6 +11,13 @@ pub enum StoragePathError {
   NotADirectory,
   NotEmpty,
   InsideGamePath,
+  CreateStore(String),
+}
+
+impl From<tauri_plugin_store::Error> for StoragePathError {
+  fn from(e: tauri_plugin_store::Error) -> Self {
+    StoragePathError::CreateStore(e.to_string())
+  }
 }
 
 pub fn validate_storage_path(

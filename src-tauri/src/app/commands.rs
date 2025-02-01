@@ -30,6 +30,7 @@ pub struct AppState {
 pub enum AppError<T: Serialize> {
   NoGamePath(GamePathError),
   NoStoragePath,
+  CreateStore(String),
   Module(T),
 }
 
@@ -55,7 +56,8 @@ fn get_current_game_path(
   let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
 
   if let Some(custom_game_path) = store
-    .get(CUSTOM_GAME_PATH_OPTION_KEY)
+    .ok()
+    .and_then(|s| s.get(CUSTOM_GAME_PATH_OPTION_KEY))
     .and_then(|s| Some(PathBuf::from(s.as_str()?)))
   {
     *state_game_path = Some(custom_game_path.clone());
@@ -71,7 +73,9 @@ fn get_current_game_path(
 }
 
 fn revalidate_custom_game_path(state: &AppState, app_handle: &AppHandle) {
-  let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
+  let Ok(store) = app_handle.store_builder(CONFIG_STORE_NAME).build() else {
+    return;
+  };
 
   let custom_game_path = store
     .get(CUSTOM_GAME_PATH_OPTION_KEY)
@@ -97,7 +101,7 @@ fn set_custom_game_path(
 ) -> Result<(), GamePathError> {
   validate_game_path(custom_game_path)?;
 
-  let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
+  let store = app_handle.store_builder(CONFIG_STORE_NAME).build()?;
 
   store.set(
     CUSTOM_GAME_PATH_OPTION_KEY,
@@ -114,7 +118,7 @@ fn set_custom_game_path(
 }
 
 fn get_current_storage_path(app_handle: &AppHandle) -> Option<PathBuf> {
-  let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
+  let store = app_handle.store_builder(CONFIG_STORE_NAME).build().ok()?;
 
   store
     .get(STORAGE_PATH_OPTION_KEY)
@@ -128,7 +132,7 @@ fn set_storage_path(
 ) -> Result<(), StoragePathError> {
   validate_storage_path(storage_path, game_path)?;
 
-  let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
+  let store = app_handle.store_builder(CONFIG_STORE_NAME).build()?;
 
   store.set(
     STORAGE_PATH_OPTION_KEY,
@@ -141,7 +145,9 @@ fn set_storage_path(
 }
 
 fn get_deploy_method(app_handle: &AppHandle) -> DeployMethod {
-  let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
+  let Ok(store) = app_handle.store_builder(CONFIG_STORE_NAME).build() else {
+    return DeployMethod::Copy;
+  };
 
   store
     .get(DEPLOY_METHOD_OPTION_KEY)
@@ -159,7 +165,10 @@ fn set_deploy_method(
 
   validate_deploy_method(deploy_method, &game_path, &storage_path)?;
 
-  let store = app_handle.store_builder(CONFIG_STORE_NAME).build();
+  let store = app_handle
+    .store_builder(CONFIG_STORE_NAME)
+    .build()
+    .map_err(|e| AppError::CreateStore(e.to_string()))?;
 
   store.set(DEPLOY_METHOD_OPTION_KEY, json!(deploy_method));
 
