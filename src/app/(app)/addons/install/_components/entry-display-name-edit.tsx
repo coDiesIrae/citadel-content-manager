@@ -1,7 +1,8 @@
-import { Fragment } from "react";
-import { InstallAddonEntry } from "../_hooks/useFileEntries";
+import { selectAddonMetadataAtom } from "@/api/stores/userAtom";
 import { Input } from "@/components/ui/input";
-import UserStore from "@/api/stores/userData";
+import { useAtom } from "jotai";
+import { Fragment, useMemo } from "react";
+import { InstallAddonEntry } from "../_hooks/useFileEntries";
 
 export interface EntryDisplayNameEditProps {
   entry: InstallAddonEntry;
@@ -12,7 +13,9 @@ export default function EntryDisplayNameEdit({
   entry,
   onEdit,
 }: EntryDisplayNameEditProps) {
-  const { data: addonConfig } = UserStore.useAddonMetadata(entry.fileName);
+  const [addonConfig] = useAtom(
+    useMemo(() => selectAddonMetadataAtom(entry.fileName), [entry.fileName])
+  );
 
   const disabled = entry.collidesWithInstalledAddon && !entry.rename.active;
 

@@ -1,7 +1,8 @@
-import UIStateStore from "@/api/stores/uiState";
+import { selectCategoryStateAtom } from "@/api/stores/uiAtom";
 import AddonEntry from "@/components/main/addon-entry";
 import { cn } from "@/lib/utils";
-import { useEffect, useMemo, useState } from "react";
+import { useAtom } from "jotai";
+import { useMemo } from "react";
 
 export interface AddonCategoryProps {
   id: number;
@@ -23,13 +24,9 @@ export default function AddonCategory({
   name,
   filter,
 }: AddonCategoryProps) {
-  const { data: categoryState } = UIStateStore.useCategoryState(id);
-
-  const [open, setOpen] = useState(categoryState?.expanded ?? false);
-
-  useEffect(() => {
-    setOpen(categoryState?.expanded ?? false);
-  }, [categoryState?.expanded]);
+  const [categoryState, setCategoryState] = useAtom(
+    useMemo(() => selectCategoryStateAtom(id), [id])
+  );
 
   const filteredAddons = useMemo(() => {
     if (!filter) return addons;
@@ -49,8 +46,7 @@ export default function AddonCategory({
       <div
         className="flex self-stretch flex-row justify-between cursor-pointer bg-surface-100/10 items-center px-3 py-1.5 rounded-md"
         onClick={() => {
-          setOpen(!open);
-          UIStateStore.setCategoryState(id, { expanded: !open });
+          setCategoryState({ expanded: !categoryState.expanded });
         }}
       >
         <span className="font-bold text-lg">
@@ -67,10 +63,10 @@ export default function AddonCategory({
       <div
         className={cn(
           "flex flex-col gap-1",
-          open && filteredAddons.length > 0 && "mt-2"
+          categoryState.expanded && filteredAddons.length > 0 && "mt-2"
         )}
       >
-        {open &&
+        {categoryState.expanded &&
           filteredAddons.map((item) => (
             <AddonEntry
               key={item.path}

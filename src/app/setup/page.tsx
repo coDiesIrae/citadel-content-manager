@@ -1,16 +1,19 @@
 "use client";
 
+import { completedOnboardingAtom } from "@/api/stores/userAtom";
 import { Button } from "@/components/ui/button";
+import { useAtom } from "jotai";
+import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import ErrorDialog from "./_components/error-dialog";
 import GamePathSelector from "./_components/game-path-selector";
 import SearchPathsSetup from "./_components/search-paths-setup";
 import StoragePathSelector from "./_components/storage-path-selector";
-import { useRouter } from "next/navigation";
-import UserStore from "@/api/stores/userData";
 
 export default function SetupPage() {
   const router = useRouter();
+
+  const [, setCompletedOnboarding] = useAtom(completedOnboardingAtom);
 
   const [error, setError] = useState<{
     show: boolean;
@@ -33,9 +36,9 @@ export default function SetupPage() {
   );
 
   const onContinue = useCallback(() => {
-    router.replace("/addons");
+    setCompletedOnboarding(true);
 
-    UserStore.setValue("completedOnboarding", true);
+    router.replace("/addons");
   }, [router]);
 
   return (

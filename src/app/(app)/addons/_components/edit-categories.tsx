@@ -1,4 +1,9 @@
-import UserStore, { CATEGORY_UNCATEGORIZED } from "@/api/stores/userData";
+import { categoriesStateAtom } from "@/api/stores/uiAtom";
+import {
+  addonsMetadataAtom,
+  CATEGORY_UNCATEGORIZED,
+  categoryNamesAtom,
+} from "@/api/stores/userAtom";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -7,12 +12,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Separator } from "@/components/ui/separator";
-import { Dispatch, SetStateAction, useEffect, useState } from "react";
-import { motion, Reorder, useDragControls } from "framer-motion";
 import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import { Reorder, useDragControls } from "framer-motion";
+import { useAtom } from "jotai";
+import { Dispatch, SetStateAction, useEffect, useState } from "react";
 import { mutate } from "swr";
-import UIStateStore from "@/api/stores/uiState";
 
 type CategoryEntry = {
   id: number;
@@ -96,14 +101,9 @@ function CategoryItem({ category, setCategories }: CategoryItemProps) {
 }
 
 export default function EditCategories() {
-  const { data: storeCategories } = UserStore.useCategories();
-  const { data: addonMetadata } = UserStore.useAllAddonMetadata();
-  const { data: categoryStates } = UIStateStore.useValue("categories");
-
-  const { trigger: setAllCategories } = UserStore.useMutateCategories();
-  const { trigger: setAllMetadata } = UserStore.useMutateAllAddonMetadata();
-  const { trigger: setCategoryState } =
-    UIStateStore.useMutateValue("categories");
+  const [addonMetadata, setAllMetadata] = useAtom(addonsMetadataAtom);
+  const [storeCategories, setAllCategories] = useAtom(categoryNamesAtom);
+  const [categoryStates, setCategoryState] = useAtom(categoriesStateAtom);
 
   const [categories, setCategories] = useState<CategoryEntry[]>([]);
 

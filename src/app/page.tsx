@@ -1,20 +1,19 @@
 "use client";
 
-import UserStore from "@/api/stores/userData";
+import { completedOnboardingAtom } from "@/api/stores/userAtom";
 import { useInvoke } from "@/api/useInvoke";
+import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import useSWR from "swr";
 
 export default function Home() {
   const router = useRouter();
 
+  const [completedOnboarding] = useAtom(completedOnboardingAtom);
+
   const { isLoading: isRevalidatingGamePath } = useInvoke(
     "revalidate_custom_game_path_app",
     undefined
-  );
-  const { data: completedOnboarding } = useSWR("completed_onboarding", () =>
-    UserStore.getValue("completedOnboarding")
   );
 
   useEffect(() => {

@@ -1,5 +1,11 @@
 "use client";
 
+import { genericAppErrorMessage } from "@/api/errorMessages/app";
+import { manageAddonErrorMessage } from "@/api/errorMessages/manageAddon";
+import {
+  addonsMetadataAtom,
+  defaultAddonMetadata,
+} from "@/api/stores/userAtom";
 import { useInvoke, useInvokeMutate } from "@/api/useInvoke";
 import { installAddonsAtom } from "@/app/atoms/install";
 import { Button } from "@/components/ui/button";
@@ -11,19 +17,19 @@ import {
 import { useAtom } from "jotai";
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
+import { toast } from "sonner";
 import EntryCollisionHeader from "./_components/entry-collision-header";
 import EntryDisplayNameEdit from "./_components/entry-display-name-edit";
 import EntryFileNameEdit from "./_components/entry-file-name-edit";
 import useFileEntries from "./_hooks/useFileEntries";
-import UserStore from "@/api/stores/userData";
-import { toast } from "sonner";
-import { genericAppErrorMessage } from "@/api/errorMessages/app";
-import { manageAddonErrorMessage } from "@/api/errorMessages/manageAddon";
 
 export default function InstallAdonsPage() {
   const router = useRouter();
 
+  const [{ entries }, dispatchEntries] = useFileEntries();
+
   const [, setFileNames] = useAtom(installAddonsAtom);
+  const [, setAddonMetadata] = useAtom(addonsMetadataAtom);
 
   const { mutate: mutateInstalledAddons } = useInvoke(
     "list_managed_addons_app",
@@ -31,11 +37,6 @@ export default function InstallAdonsPage() {
   );
 
   const { trigger: installAddon } = useInvokeMutate("manage_addon_app");
-
-  const { trigger: setAddonMetadata } =
-    UserStore.useMutateAddonMetadataPartial();
-
-  const [{ entries }, dispatchEntries] = useFileEntries();
 
   const installAddons = useCallback(async () => {
     await Promise.all(
@@ -48,11 +49,17 @@ export default function InstallAdonsPage() {
         });
 
         if (res.success) {
-          await setAddonMetadata({
-            fileName: file.fileName,
-            metadata: {
-              displayName: file.displayName,
-            },
+          setAddonMetadata(async (previousMetadata) => {
+            const currentMetadata = await previousMetadata;
+
+            return {
+              ...currentMetadata,
+              [file.fileName]: {
+                ...defaultAddonMetadata(file.fileName),
+                ...currentMetadata[file.fileName],
+                displayName: file.displayName,
+              },
+            };
           });
         } else {
           toast.error(

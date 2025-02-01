@@ -1,5 +1,9 @@
-import UserStore from "@/api/stores/userData";
+import {
+  categoryNamesAtom,
+  selectAddonMetadataAtom,
+} from "@/api/stores/userAtom";
 import { mutateInvoke, useInvokeMutate } from "@/api/useInvoke";
+import { useAtom } from "jotai";
 import { ElementRef, useCallback, useMemo, useRef, useState } from "react";
 import { Button } from "../ui/button";
 import {
@@ -34,15 +38,12 @@ export default function AddonEdit({
   fileName,
   mounted,
 }: AddonEditProps) {
-  const { data: metadata, mutate: mutateMetadata } =
-    UserStore.useAddonMetadata(fileName);
+  const [metadata, setMetadata] = useAtom(
+    useMemo(() => selectAddonMetadataAtom(fileName), [fileName])
+  );
 
-  const { data: categories, mutate: mutateCategories } =
-    UserStore.useCategories();
+  const [categories, setCategories] = useAtom(categoryNamesAtom);
 
-  const { mutate: mutateAllAddonMetadata } = UserStore.useAllAddonMetadata();
-
-  const { trigger: setMetadata } = UserStore.useMutateAddonMetadata();
   const { trigger: deleteAddon } = useInvokeMutate("delete_addon_app");
 
   const categoryInputRef = useRef<ElementRef<"input">>(null);
@@ -100,9 +101,14 @@ export default function AddonEdit({
                 )?.[0];
 
                 if (!categoryId) {
-                  const newCategoryId = await UserStore.addCategory(
-                    newCategory
-                  );
+                  const newCategoryId =
+                    Math.max(0, ...Object.keys(categories ?? {}).map(Number)) +
+                    1;
+
+                  setCategories({
+                    ...categories,
+                    [newCategoryId]: newCategory,
+                  });
 
                   newMetadata.category = newCategoryId;
                 } else {
@@ -111,14 +117,7 @@ export default function AddonEdit({
               }
             }
 
-            await setMetadata({
-              fileName,
-              metadata: newMetadata,
-            });
-
-            mutateMetadata();
-            mutateCategories();
-            mutateAllAddonMetadata();
+            setMetadata(newMetadata);
 
             setOpen(false);
           }}
@@ -129,7 +128,7 @@ export default function AddonEdit({
             <Input
               id="display_name"
               name="display_name"
-              defaultValue={metadata?.displayName}
+              defaultValue={metadata.displayName}
               autoComplete="off"
               autoCorrect="off"
             />
@@ -150,7 +149,7 @@ export default function AddonEdit({
                   aria-expanded={categorySelectOpen}
                   className="justify-between gap-2 items-center flex-1"
                 >
-                  {(newCategory || categories?.[metadata?.category ?? -1]) ??
+                  {(newCategory || categories?.[metadata.category]) ??
                     "Uncategorized"}
                   <span className="icon-[lucide--chevrons-up-down] size-4" />
                 </Button>

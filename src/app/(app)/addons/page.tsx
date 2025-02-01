@@ -1,6 +1,10 @@
 "use client";
 
-import UserStore, { CATEGORY_UNCATEGORIZED } from "@/api/stores/userData";
+import {
+  addonsMetadataAtom,
+  categoryNamesAtom,
+  CATEGORY_UNCATEGORIZED,
+} from "@/api/stores/userAtom";
 import { useInvoke } from "@/api/useInvoke";
 import { installAddonsAtom } from "@/app/atoms/install";
 import FileDropListener from "@/components/main/file-drop-listener";
@@ -28,8 +32,8 @@ export default function Home() {
     undefined
   );
 
-  const { data: addonMetadata } = UserStore.useAllAddonMetadata();
-  const { data: categories } = UserStore.useCategories();
+  const [addonMetadata] = useAtom(addonsMetadataAtom);
+  const [categories] = useAtom(categoryNamesAtom);
 
   const [filter, setFilter] = useState("");
 
